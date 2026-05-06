@@ -6,13 +6,15 @@
 
 **Qwen3-ASR-1.7B** + **MediaTek Breeze-ASR-25** · Hot-word injection · LLM context polish · Speaker diarization · OpenCC s2twp · 56 TDD tests
 
+[![CI](https://github.com/thc1006/taiwan-asr-toolkit/actions/workflows/tests.yml/badge.svg)](https://github.com/thc1006/taiwan-asr-toolkit/actions/workflows/tests.yml)
 [![Tests](https://img.shields.io/badge/tests-56%20passed-brightgreen)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](pyproject.toml)
 [![CUDA](https://img.shields.io/badge/CUDA-12.8%20%7C%20Blackwell%20sm__120-76B900)](docs/INSTALL.md)
 [![License](https://img.shields.io/badge/license-MIT-purple)](LICENSE)
 [![繁體中文](https://img.shields.io/badge/output-繁體中文%20s2twp-red)](#features)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/thc1006/taiwan-asr-toolkit/blob/main/examples/quickstart.ipynb)
 
-[**Why this exists**](#why-this-exists) · [**Quick start**](#quick-start) · [**Benchmarks**](#benchmarks) · [**Usage**](#usage) · [**Architecture**](docs/ARCHITECTURE.md)
+[**Why this exists**](#why-this-exists) · [**Quick start**](#quick-start) · [**Benchmarks**](#benchmarks) · [**Usage**](#usage) · [**Architecture**](docs/ARCHITECTURE.md) · [**vs alternatives**](examples/compare_alternatives.md)
 
 </div>
 
@@ -36,19 +38,33 @@ This toolkit fixes all of those. Two production-grade Mandarin ASR models, **ide
 
 ## Quick start
 
+### Zero-effort try (Colab)
+
+Click the **Open in Colab** badge at the top — runs the full pipeline on a
+bundled 30-second sample with a Colab T4 GPU, no install on your machine.
+
+### 30-second local test (no audio needed, uses bundled sample)
+
 ```bash
-# 1. Install
 git clone https://github.com/thc1006/taiwan-asr-toolkit.git && cd taiwan-asr-toolkit
 pip install --index-url https://download.pytorch.org/whl/cu128 torch torchaudio
 pip install -e ".[all]"
 
-# 2. Transcribe (auto-detects RTX 5090, picks best params)
-asr-breeze path/to/your_audio.mp3 --glossary-file glossary.txt
-
-# 3. Output is in ./transcripts/breeze/{filename}_breeze.{txt,srt,json}
+asr-breeze tests/fixtures/clip_30s.wav --glossary-file glossary.txt
+cat transcripts/breeze/clip_30s_breeze.txt
 ```
 
-**That's it.** Output is **Traditional Chinese (Taiwan)**, with timestamps, segment-level + word-level (Breeze) timing, and proper SRT subtitles.
+That's it — 30 s of Taiwan Mandarin in, Traditional Chinese transcript out.
+
+### On your own audio
+
+```bash
+asr-breeze path/to/your_audio.mp3 --glossary-file glossary.txt
+# Output: transcripts/breeze/{filename}_breeze.{txt,srt,json}
+```
+
+Output is **Traditional Chinese (Taiwan)**, with timestamps, segment-level + word-level
+(Breeze) timing, and proper SRT subtitles.
 
 ---
 
