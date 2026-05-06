@@ -79,11 +79,18 @@ def detect_hw(fast: bool) -> HwConfig:
     vram = torch.cuda.get_device_properties(0).total_memory / (1024**3)
     cfg.desc = f"{name} ({vram:.0f}GB, cc={cap[0]}.{cap[1]})"
 
-    # Blackwell sm_120 / sm_100
+    # Blackwell sm_120 / sm_100 — covers RTX 5090 (32GB), RTX Pro 6000 (96GB), B100/B200 (192GB)
     if cap[0] >= 12:
         cfg.dtype = torch.bfloat16
         cfg.ct2_compute = "int8_bfloat16" if fast else "bfloat16"
-        cfg.batch_size = 32
+        if vram >= 140:                # B100/B200 (192GB)
+            cfg.batch_size = 96
+        elif vram >= 70:               # RTX Pro 6000 (96GB)
+            cfg.batch_size = 64
+        elif vram >= 30:               # RTX 5090 (32GB)
+            cfg.batch_size = 32
+        else:                           # smaller Blackwell (if any)
+            cfg.batch_size = 16
     elif cap[0] == 9:                  # Hopper
         cfg.dtype = torch.bfloat16
         cfg.ct2_compute = "int8_bfloat16" if fast else "bfloat16"
