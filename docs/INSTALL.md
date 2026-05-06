@@ -14,7 +14,7 @@ features auto-detect.
 
 Verify your GPU:
 ```bash
-nvidia-smi  # should show driver and CUDA version
+nvidia-smi # should show driver and CUDA version
 python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0))"
 ```
 

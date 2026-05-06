@@ -4,14 +4,14 @@ Qwen3-ASR-1.7B 極致優化版 v2 — RTX 5090 (Blackwell sm_120)
 策略:準度為先,速度從「免費」優化白送 (Length-sorted batching + ONNX VAD + pipe IO + compile)
 
 對比 v1 的關鍵升級:
-  ★ 長度排序 batching (length-sorted) — VAD 切片長度極不均,同 batch padding 浪費高達 5-10x;
+   長度排序 batching (length-sorted) — VAD 切片長度極不均,同 batch padding 浪費高達 5-10x;
                                            排序後 padding 浪費降到 <2x。實測 1.5-3x 加速,精度 0 損失
-  ★ Silero VAD ONNX 後端 — CPU SIMD,3-5x 快,精度與 PyTorch 後端 byte-identical
-  ★ ffmpeg pipe 直讀 f32le — 跳過暫存 wav,省磁碟 IO + int16→f32 轉換
-  ★ torch.compile mode='reduce-overhead' (dynamic=True) — kernel cudagraph 抓取
-  ★ OpenCC s2twp — 強制簡→繁台灣化後處理 (軟件→軟體,激光→雷射…)
-  ★ 24 核 CPU 全開 (OMP/MKL/torch 全顯式設定)
-  ★ pinned memory + cuda streams 預備
+   Silero VAD ONNX 後端 — CPU SIMD,3-5x 快,精度與 PyTorch 後端 byte-identical
+   ffmpeg pipe 直讀 f32le — 跳過暫存 wav,省磁碟 IO + int16→f32 轉換
+   torch.compile mode='reduce-overhead' (dynamic=True) — kernel cudagraph 抓取
+   OpenCC s2twp — 強制簡→繁台灣化後處理 (軟件→軟體,激光→雷射…)
+   24 核 CPU 全開 (OMP/MKL/torch 全顯式設定)
+   pinned memory + cuda streams 預備
 """
 from __future__ import annotations
 
@@ -159,10 +159,10 @@ class Qwen3ASR:
         try:
             self.model = Qwen3ASRModel.from_pretrained(**kw)
         except (TypeError, ValueError) as e:
-            print(f"   ⚠️  attn_implementation 被拒絕 ({type(e).__name__}),退回預設…")
+            print(f" attn_implementation 被拒絕 ({type(e).__name__}),退回預設…")
             kw.pop("attn_implementation", None)
             self.model = Qwen3ASRModel.from_pretrained(**kw)
-        print(f"✅ 模型就緒 ({time.time()-t0:.1f}s)")
+        print(f" 模型就緒 ({time.time()-t0:.1f}s)")
 
         if self.cfg.compile_mode and self.cfg.device.startswith("cuda"):
             try:
@@ -173,19 +173,19 @@ class Qwen3ASR:
                         mode=self.cfg.compile_mode,
                         dynamic=True, fullgraph=False,
                     )
-                    print(f"⚡ torch.compile 已啟用 (mode={self.cfg.compile_mode}, dynamic=True)")
+                    print(f" torch.compile 已啟用 (mode={self.cfg.compile_mode}, dynamic=True)")
             except Exception as e:
-                print(f"   ℹ️  torch.compile 略過: {type(e).__name__}: {str(e)[:80]}")
-        print(f"📝 OpenCC: {self.s2tw}")
+                print(f" ℹ  torch.compile 略過: {type(e).__name__}: {str(e)[:80]}")
+        print(f" OpenCC: {self.s2tw}")
 
         # 暖機:跑 1 個小 dummy chunk,讓 cuDNN/torch.compile 預先 JIT
         try:
             t1 = time.time()
             dummy = (np.zeros(int(2 * 16000), dtype=np.float32), 16000)  # 2s silence
             _ = self._transcribe_batch([dummy], "Chinese")
-            print(f"🔥 warmup 完成 ({time.time()-t1:.2f}s)")
+            print(f" warmup 完成 ({time.time()-t1:.2f}s)")
         except Exception as e:
-            print(f"   (warmup 略過: {type(e).__name__})")
+            print(f" (warmup 略過: {type(e).__name__})")
         return self
 
     @torch.inference_mode()
@@ -219,7 +219,7 @@ class Qwen3ASR:
         sw.lap(f"VAD ({self.vad._using})")
 
         h = int(dur // 3600); m = int((dur % 3600) // 60); s = int(dur % 60)
-        print(f"🎬 音訊: {h:02d}:{m:02d}:{s:02d} ({dur:.1f}s) | "
+        print(f" 音訊: {h:02d}:{m:02d}:{s:02d} ({dur:.1f}s) | "
               f"VAD 切片: {n} 段 | batch={self.cfg.batch_size} (length-sorted) | "
               f"language={lang_full or 'auto'}")
 
@@ -251,7 +251,7 @@ class Qwen3ASR:
                 torch.cuda.empty_cache(); gc.collect()
                 # 把目前 batch + 後面所有 batch 用一半的 bs 重新分割
                 cur_bs = max(1, cur_bs // 2)
-                print(f"\n⚠️  OOM,降批 → {cur_bs} 並重新分配後續…")
+                print(f"\n  OOM,降批 → {cur_bs} 並重新分配後續…")
                 remaining_idxs = idxs + [i for b in pending_idxs for i in b]
                 pending_idxs = [
                     remaining_idxs[i:i + cur_bs]
@@ -295,7 +295,7 @@ class Qwen3ASR:
         if torch.cuda.is_available():
             peak = torch.cuda.max_memory_allocated() / 1024**3
             asr_t = sw.get("ASR")
-            print(f"✅ Qwen3 完成 | 段 {len(out)} | ASR 耗 {asr_t:.1f}s | "
+            print(f" Qwen3 完成 | 段 {len(out)} | ASR 耗 {asr_t:.1f}s | "
                   f"音訊 {dur:.1f}s | RTF={dur/max(asr_t,1e-3):.1f}x | VRAM peak {peak:.2f}GB")
         return out, sw
 
@@ -328,7 +328,7 @@ class Qwen3ASR:
 
         n_total = len(pooled)
         total_dur = sum(durs)
-        print(f"🌊 Pool 模式: {len(paths)} 檔 / 總 {total_dur:.0f}s / "
+        print(f" Pool 模式: {len(paths)} 檔 / 總 {total_dur:.0f}s / "
               f"{n_total} 個 chunk → batch={self.cfg.batch_size}")
 
         if torch.cuda.is_available():
@@ -361,7 +361,7 @@ class Qwen3ASR:
             except torch.cuda.OutOfMemoryError:
                 torch.cuda.empty_cache(); gc.collect()
                 cur_bs = max(1, cur_bs // 2)
-                print(f"\n⚠️  OOM,降批 → {cur_bs} 並重新分配後續…")
+                print(f"\n  OOM,降批 → {cur_bs} 並重新分配後續…")
                 rest = idxs + [i for b in pending for i in b]
                 pending = [rest[i:i + cur_bs] for i in range(0, len(rest), cur_bs)]
                 self.cfg.batch_size = cur_bs
@@ -400,7 +400,7 @@ class Qwen3ASR:
         if torch.cuda.is_available():
             peak = torch.cuda.max_memory_allocated() / 1024**3
             asr_t = sw.get("ASR")
-            print(f"✅ Pool 完成 | {len(paths)} 檔 / {n_total} 段 | ASR 耗 {asr_t:.1f}s | "
+            print(f" Pool 完成 | {len(paths)} 檔 / {n_total} 段 | ASR 耗 {asr_t:.1f}s | "
                   f"總音訊 {total_dur:.1f}s | RTF={total_dur/max(asr_t,1e-3):.1f}x | "
                   f"VRAM peak {peak:.2f}GB")
         return out_per_file, sw
@@ -426,14 +426,14 @@ def main():
     args = ap.parse_args()
 
     print("=" * 72)
-    print("🚀 Qwen3-ASR-1.7B 極致優化 v2 (Length-sorted + ONNX VAD + pipe IO + s2twp)")
+    print(" Qwen3-ASR-1.7B 極致優化 v2 (Length-sorted + ONNX VAD + pipe IO + s2twp)")
     print("=" * 72)
     cfg = detect_hw()
     if args.batch > 0: cfg.batch_size = args.batch
     if args.chunk > 0: cfg.chunk_sec = args.chunk
     if args.no_compile: cfg.compile_mode = None
-    print(f"🔧 {cfg.desc}  CPU threads={_NCPU}")
-    print(f"   dtype={cfg.dtype} | batch={cfg.batch_size} | chunk={cfg.chunk_sec}s | "
+    print(f" {cfg.desc}  CPU threads={_NCPU}")
+    print(f" dtype={cfg.dtype} | batch={cfg.batch_size} | chunk={cfg.chunk_sec}s | "
           f"attn={cfg.attn_impl} | compile={cfg.compile_mode or '-'}")
 
     asr = Qwen3ASR(cfg, s2tw_enabled=not args.no_s2tw,
@@ -442,21 +442,21 @@ def main():
     valid_inputs = [s for s in args.inputs if os.path.exists(s)]
     for s in args.inputs:
         if s not in valid_inputs:
-            print(f"❌ 找不到 {s}")
+            print(f" 找不到 {s}")
 
     use_pool = (len(valid_inputs) > 1) and (not args.no_pool)
     if use_pool:
         print("\n" + "─" * 72)
-        print(f"🌊 多檔 Pool 模式啟用 ({len(valid_inputs)} 檔)")
+        print(f" 多檔 Pool 模式啟用 ({len(valid_inputs)} 檔)")
         results, sw = asr.transcribe_files(valid_inputs, language=lang)
         sw.report()
         for src, segs in results.items():
-            print(f"\n📄 {src}")
+            print(f"\n {src}")
             save_outputs(segs, src, args.out, suffix="qwen3")
     else:
         for src in valid_inputs:
             print("\n" + "─" * 72)
-            print(f"📄 {src}")
+            print(f" {src}")
             segs, sw = asr.transcribe(src, language=lang)
             sw.report()
             save_outputs(segs, src, args.out, suffix="qwen3")
@@ -464,7 +464,7 @@ def main():
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
     gc.collect()
-    print("\n🧹 完成,GPU 記憶體已釋放。")
+    print("\n 完成,GPU 記憶體已釋放。")
 
 
 if __name__ == "__main__":

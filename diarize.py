@@ -48,7 +48,7 @@ def run_pyannote(audio_array, sr: int = 16000,
         import torch
         from pyannote.audio import Pipeline
     except ImportError:
-        print("⚠️  pyannote.audio 未安裝 (uv pip install --system pyannote.audio)", file=sys.stderr)
+        print(" pyannote.audio 未安裝 (uv pip install --system pyannote.audio)", file=sys.stderr)
         return []
 
     dev = device
@@ -76,17 +76,17 @@ def run_pyannote(audio_array, sr: int = 16000,
     if pipeline is None:
         msg = str(last_err)
         is_gated = "gated" in msg.lower() or "Gated" in msg or "403" in msg
-        print(f"⚠️  pyannote 模型載入失敗 ({type(last_err).__name__})", file=sys.stderr)
+        print(f" pyannote 模型載入失敗 ({type(last_err).__name__})", file=sys.stderr)
         if is_gated:
-            print("   ↪ 此模型受 license 保護,請執行下列步驟 (一次性):", file=sys.stderr)
-            print("     1. 開啟瀏覽器登入 HuggingFace 帳號", file=sys.stderr)
-            print(f"     2. 造訪 https://hf.co/{model_id} 點 'Agree and access repository'", file=sys.stderr)
-            print(f"     3. 同樣造訪 https://hf.co/pyannote/speaker-diarization-community-1", file=sys.stderr)
-            print(f"     4. 同樣造訪 https://hf.co/pyannote/segmentation-3.0", file=sys.stderr)
-            print("     5. 確認 https://hf.co/settings/tokens 的 token 有 'Read' 權限", file=sys.stderr)
-            print(f"     6. 重跑此命令 (HF_TOKEN 已自動讀 ~/.cache/huggingface/token)", file=sys.stderr)
+            print(" ↪ 此模型受 license 保護,請執行下列步驟 (一次性):", file=sys.stderr)
+            print(" 1. 開啟瀏覽器登入 HuggingFace 帳號", file=sys.stderr)
+            print(f" 2. 造訪 https://hf.co/{model_id} 點 'Agree and access repository'", file=sys.stderr)
+            print(f" 3. 同樣造訪 https://hf.co/pyannote/speaker-diarization-community-1", file=sys.stderr)
+            print(f" 4. 同樣造訪 https://hf.co/pyannote/segmentation-3.0", file=sys.stderr)
+            print(" 5. 確認 https://hf.co/settings/tokens 的 token 有 'Read' 權限", file=sys.stderr)
+            print(f" 6. 重跑此命令 (HF_TOKEN 已自動讀 ~/.cache/huggingface/token)", file=sys.stderr)
         else:
-            print(f"   錯誤:{msg[:200]}", file=sys.stderr)
+            print(f" 錯誤:{msg[:200]}", file=sys.stderr)
         return []
 
     if dev.startswith("cuda"):
@@ -165,13 +165,13 @@ def main():
     args = ap.parse_args()
 
     print("=" * 72)
-    print("👥 Speaker Diarization (pyannote.audio)")
+    print(" Speaker Diarization (pyannote.audio)")
     print("=" * 72)
 
     # 載入 ASR segments
     asr_path = Path(args.asr_json)
     if not asr_path.is_file():
-        print(f"❌ 找不到 ASR JSON: {asr_path}"); return
+        print(f" 找不到 ASR JSON: {asr_path}"); return
     asr_data = json.loads(asr_path.read_text(encoding="utf-8"))
     segments = [Segment(
         start=float(s.get("start", 0.0) or 0.0),
@@ -183,12 +183,12 @@ def main():
         words=s.get("words"),
         speaker_id=s.get("speaker_id"),
     ) for s in asr_data]
-    print(f"📄 ASR: {len(segments)} 段 from {asr_path}")
+    print(f" ASR: {len(segments)} 段 from {asr_path}")
 
     # 載入音訊
-    print(f"🎵 解碼: {args.audio}")
+    print(f" 解碼: {args.audio}")
     audio, dur = AudioIO.decode_to_array(args.audio)
-    print(f"   {dur:.1f}s ({dur/60:.1f} 分)")
+    print(f" {dur:.1f}s ({dur/60:.1f} 分)")
 
     # 跑 pyannote
     print(f"⏳ 載入 + 跑 pyannote {args.model}…")
@@ -198,10 +198,10 @@ def main():
                         hf_token=args.hf_token or None)
     el = time.time() - t0
     if not diar:
-        print("⚠️  diarization 為空,輸出將不含 speaker 標籤")
+        print(" diarization 為空,輸出將不含 speaker 標籤")
     else:
         speakers = sorted(set(d[2] for d in diar))
-        print(f"✅ {len(diar)} 個 turn 偵測到,{len(speakers)} 位 speaker ({speakers}) | "
+        print(f" {len(diar)} 個 turn 偵測到,{len(speakers)} 位 speaker ({speakers}) | "
               f"耗時 {el:.1f}s")
 
     # 對齊
@@ -223,7 +223,7 @@ def main():
     suffix = (m.group(1) if m else "asr") + "-diarized"
 
     save_outputs(out_segs, str(asr_path.with_name(base)), out_dir, suffix=suffix)
-    print("\n🧹 完成。")
+    print("\n 完成。")
 
 
 if __name__ == "__main__":

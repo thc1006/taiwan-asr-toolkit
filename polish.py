@@ -145,10 +145,10 @@ class Qwen3Polisher:
                 )
                 self.model.eval()
                 self.model_id = mid
-                print(f"✅ LLM 就緒 ({time.time()-t0:.1f}s)")
+                print(f" LLM 就緒 ({time.time()-t0:.1f}s)")
                 return self
             except Exception as e:
-                print(f"   ⚠️  {mid} 載入失敗: {type(e).__name__}: {str(e)[:120]}")
+                print(f" {mid} 載入失敗: {type(e).__name__}: {str(e)[:120]}")
                 last_err = e
                 continue
         raise RuntimeError(f"所有候選 LLM 都載入失敗。最後一次錯誤: {last_err}")
@@ -216,7 +216,7 @@ class Qwen3Polisher:
             try:
                 texts_out = self.polish_window(texts_in)
             except Exception as e:
-                print(f"\n   ⚠️  視窗 {i}..{j} polish 失敗: {type(e).__name__}: {str(e)[:80]} → passthrough")
+                print(f"\n     視窗 {i}..{j} polish 失敗: {type(e).__name__}: {str(e)[:80]} → passthrough")
                 texts_out = texts_in
             for k, txt in enumerate(texts_out):
                 seg = segments[i + k]
@@ -234,7 +234,7 @@ class Qwen3Polisher:
             if verbose:
                 el = time.perf_counter() - t0
                 pct = 100 * done / n
-                print(f"\r   ✏️  {done}/{n} ({pct:5.1f}%) | 耗 {el:6.1f}s", end="", flush=True)
+                print(f"\r     {done}/{n} ({pct:5.1f}%) | 耗 {el:6.1f}s", end="", flush=True)
         if verbose:
             print()
         sw.lap("polish")
@@ -266,22 +266,22 @@ def main():
             ]
 
     print("=" * 72)
-    print("🪄  LLM 上下文修正 (Qwen3 後處理)")
+    print(" LLM 上下文修正 (Qwen3 後處理)")
     print("=" * 72)
 
     dtype = torch.bfloat16 if args.dtype == "bf16" else torch.float16
     polisher = Qwen3Polisher(model_id=args.model, dtype=dtype,
                              glossary=extra_glossary).load()
-    print(f"📚 保護詞彙: {len(polisher.glossary)} 個 ({'自訂+內建' if extra_glossary else '內建'})")
+    print(f" 保護詞彙: {len(polisher.glossary)} 個 ({'自訂+內建' if extra_glossary else '內建'})")
 
     for src_json in args.inputs:
         p = Path(src_json)
         if not p.is_file():
-            print(f"❌ 找不到 {src_json}"); continue
+            print(f" 找不到 {src_json}"); continue
         try:
             segs_in = json.loads(p.read_text(encoding="utf-8"))
         except Exception as e:
-            print(f"❌ JSON 解析失敗 {src_json}: {e}"); continue
+            print(f" JSON 解析失敗 {src_json}: {e}"); continue
 
         # 推導輸出目錄: transcripts/qwen3/x.json → transcripts/qwen3-polished/
         if args.out:
@@ -298,7 +298,7 @@ def main():
         # 重組 src 給 save_outputs (用 stem 作虛擬檔名)
         virtual_src = str(p.with_name(base_for_out))
         print("\n" + "─" * 72)
-        print(f"📄 {p}  →  {out_dir}/")
+        print(f" {p}  →  {out_dir}/")
         out_segs, sw = polisher.polish_segments(segs_in, window=args.window)
         sw.report()
         # 保存
@@ -308,7 +308,7 @@ def main():
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
     gc.collect()
-    print("\n🧹 完成。")
+    print("\n 完成。")
 
 
 if __name__ == "__main__":

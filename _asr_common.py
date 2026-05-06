@@ -101,7 +101,7 @@ class Segment:
 
 def save_outputs(segs: List[Segment], src: str, out_dir: str, suffix: str) -> Dict[str, str]:
     if not segs:
-        print("⚠️  無有效轉錄結果,不寫檔")
+        print(" 無有效轉錄結果,不寫檔")
         return {}
     base = Path(src).stem
     out = Path(out_dir); out.mkdir(parents=True, exist_ok=True)
@@ -119,7 +119,7 @@ def save_outputs(segs: List[Segment], src: str, out_dir: str, suffix: str) -> Di
     with open(paths["json"], "w", encoding="utf-8") as f:
         json.dump([asdict(s) for s in segs], f, ensure_ascii=False, indent=1)
     for k, p in paths.items():
-        print(f"💾 {k.upper():4s} → {p}")
+        print(f" {k.upper():4s} → {p}")
     return paths
 
 
@@ -410,8 +410,8 @@ class Stopwatch:
 
     def report(self):
         total = self.total()
-        print("⏱️  時間分析:")
+        print("⏱  時間分析:")
         for label, dt in self.events:
             pct = 100 * dt / max(total, 1e-9)
-            print(f"   {label:<28s} {dt:7.2f}s  ({pct:5.1f}%)")
-        print(f"   {'TOTAL':<28s} {total:7.2f}s")
+            print(f" {label:<28s} {dt:7.2f}s  ({pct:5.1f}%)")
+        print(f" {'TOTAL':<28s} {total:7.2f}s")

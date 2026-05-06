@@ -292,12 +292,12 @@ def main():
 
     # ─── 輸出 ───
     print("\n" + "=" * 92)
-    print("📊 ASR 完整 Benchmark (Qwen3-ASR-1.7B vs Breeze-ASR-25)")
+    print(" ASR 完整 Benchmark (Qwen3-ASR-1.7B vs Breeze-ASR-25)")
     print("=" * 92)
 
     # (1) 速度排行 (若有計時)
     if timing:
-        print("\n## ⚡ 速度 (越右邊越快)")
+        print("\n##  速度 (越右邊越快)")
         print(f"{'檔名':<30} {'時長':>8} {'Br_ASR':>8} {'Br_RTF':>8} {'Q3_ASR':>8} {'Q3_RTF':>8} {'勝者':>6}")
         print("-" * 92)
         tot_dur = tot_b = tot_q = 0.0
@@ -307,7 +307,7 @@ def main():
             if not t: continue
             br_rtf = t["dur"] / max(t["breeze_asr"], 1e-9)
             q3_rtf = t["dur"] / max(t["qwen3_asr"], 1e-9)
-            winner = "Q3 ⚡" if q3_rtf > br_rtf else "Br ⚡"
+            winner = "Q3 " if q3_rtf > br_rtf else "Br "
             if q3_rtf > br_rtf: q_wins += 1
             else: b_wins += 1
             tot_dur += t["dur"]; tot_b += t["breeze_asr"]; tot_q += t["qwen3_asr"]
@@ -320,7 +320,7 @@ def main():
               f"{tot_q:>7.1f}s {tot_dur/max(tot_q,1e-9):>7.0f}x  Q3:{q_wins} Br:{b_wins}")
 
     # (2) 覆蓋率 + 幻覺
-    print("\n## 🎯 覆蓋率 + 幻覺信號 (越高/越低見表頭箭頭)")
+    print("\n##  覆蓋率 + 幻覺信號 (越高/越低見表頭箭頭)")
     print(f"{'檔名':<30} {'cov% ↑':>10} {'cov% ↑':>10} {'>60s 段 ↓':>10} {'>60s 段 ↓':>10} {'halluc ↓':>10} {'halluc ↓':>10}")
     print(f"{'':<30} {'  Q3':>10} {'  Br':>10} {'  Q3':>10} {'  Br':>10} {'  Q3':>10} {'  Br':>10}")
     print("-" * 92)
@@ -331,7 +331,7 @@ def main():
               f"{q.halluc_score:>10.3f} {b.halluc_score:>10.3f}")
 
     # (3) 內容指標
-    print("\n## 📝 內容指標 (chars/s 中文常態 4-7,vocab 多樣性 0.05-0.2 為健康)")
+    print("\n##  內容指標 (chars/s 中文常態 4-7,vocab 多樣性 0.05-0.2 為健康)")
     print(f"{'檔名':<30} {'Q3 字':>8} {'Br 字':>8} {'Q3 c/s':>8} {'Br c/s':>8} {'Q3 vocab':>10} {'Br vocab':>10}")
     print("-" * 92)
     for p in pairs:
@@ -341,7 +341,7 @@ def main():
               f"{q.vocab_diversity:>10.4f} {b.vocab_diversity:>10.4f}")
 
     # (4) 跨模型同意度
-    print("\n## 🤝 跨模型一致性 (越高代表兩模型同意)")
+    print("\n##  跨模型一致性 (越高代表兩模型同意)")
     print(f"{'檔名':<30} {'Jaccard':>10} {'SeqSim':>10} {'Q3 繁':>8} {'Br 繁':>8}")
     print("-" * 92)
     for p in pairs:
@@ -349,7 +349,7 @@ def main():
               f"{p.qwen3.trad_ratio:>8.2f} {p.breeze.trad_ratio:>8.2f}")
 
     # (5) 綜合品質分
-    print("\n## 🏆 綜合品質分 (覆蓋 35% + 中文密度 20% + 繁體 15% + 多樣性 15% + 反幻覺 15%)")
+    print("\n##  綜合品質分 (覆蓋 35% + 中文密度 20% + 繁體 15% + 多樣性 15% + 反幻覺 15%)")
     print(f"{'檔名':<30} {'Q3 score':>12} {'Br score':>12} {'勝者':>8}")
     print("-" * 92)
     q_score_sum = b_score_sum = 0.0
@@ -358,9 +358,9 @@ def main():
         qs, bs = p.qwen3.quality_score, p.breeze.quality_score
         q_score_sum += qs; b_score_sum += bs
         if qs > bs:
-            winner = "Q3 🏆"; q_score_wins += 1
+            winner = "Q3 "; q_score_wins += 1
         elif bs > qs:
-            winner = "Br 🏆"; b_score_wins += 1
+            winner = "Br "; b_score_wins += 1
         else:
             winner = "tie"
         print(f"{p.file[:28]:<30} {qs:>12.3f} {bs:>12.3f} {winner:>8}")
@@ -372,7 +372,7 @@ def main():
     # ─── CER (若有 GT) ───
     pairs_with_cer = [p for p in pairs if p.breeze_cer is not None]
     if pairs_with_cer:
-        print("\n## 🎯 真 CER (vs ground truth,越低越好)\n")
+        print("\n##  真 CER (vs ground truth,越低越好)\n")
         print(f"{'檔名':<30} {'GT 字數':>8} {'GT 範圍':>10} {'Q3 CER':>9} {'Br CER':>9}")
         print("-" * 75)
         for p in pairs_with_cer:
@@ -382,32 +382,32 @@ def main():
 
     # ─── 最終結論 ───
     print("\n" + "=" * 92)
-    print("🎯 結論 (基於上述客觀指標 + 真 CER 若可用)")
+    print(" 結論 (基於上述客觀指標 + 真 CER 若可用)")
     print("=" * 92)
     if avg_q > avg_b + 0.02:
-        print(f"📌 **準度排名**: Qwen3-ASR-1.7B 勝出 (品質分 {avg_q:.3f} vs Breeze {avg_b:.3f})")
+        print(f" **準度排名**: Qwen3-ASR-1.7B 勝出 (品質分 {avg_q:.3f} vs Breeze {avg_b:.3f})")
     elif avg_b > avg_q + 0.02:
-        print(f"📌 **準度排名**: Breeze-ASR-25 勝出 (品質分 {avg_b:.3f} vs Qwen3 {avg_q:.3f})")
+        print(f" **準度排名**: Breeze-ASR-25 勝出 (品質分 {avg_b:.3f} vs Qwen3 {avg_q:.3f})")
     else:
-        print(f"📌 **準度排名**: 兩模型大致相當 (品質分 Q3={avg_q:.3f}, Br={avg_b:.3f})")
+        print(f" **準度排名**: 兩模型大致相當 (品質分 Q3={avg_q:.3f}, Br={avg_b:.3f})")
     if timing:
         rtf_q = tot_dur / max(tot_q, 1e-9)
         rtf_b = tot_dur / max(tot_b, 1e-9)
         if rtf_q > rtf_b:
-            print(f"📌 **速度排名**: Qwen3-ASR 較快 (RTF {rtf_q:.0f}x vs Breeze {rtf_b:.0f}x)")
+            print(f" **速度排名**: Qwen3-ASR 較快 (RTF {rtf_q:.0f}x vs Breeze {rtf_b:.0f}x)")
         else:
-            print(f"📌 **速度排名**: Breeze-ASR 較快 (RTF {rtf_b:.0f}x vs Qwen3 {rtf_q:.0f}x)")
+            print(f" **速度排名**: Breeze-ASR 較快 (RTF {rtf_b:.0f}x vs Qwen3 {rtf_q:.0f}x)")
 
-    print("\n📋 證據摘要:")
+    print("\n 證據摘要:")
     q_long = sum(p.qwen3.n_seg_too_long for p in pairs)
     b_long = sum(p.breeze.n_seg_too_long for p in pairs)
-    print(f"  • >60s 失控段: Qwen3={q_long}, Breeze={b_long}  → {'Qwen3 較穩' if q_long < b_long else ('Breeze 較穩' if b_long < q_long else '相當')}")
+    print(f" • >60s 失控段: Qwen3={q_long}, Breeze={b_long}  → {'Qwen3 較穩' if q_long < b_long else ('Breeze 較穩' if b_long < q_long else '相當')}")
     q_cov = sum(p.qwen3.coverage_ratio for p in pairs) / len(pairs)
     b_cov = sum(p.breeze.coverage_ratio for p in pairs) / len(pairs)
-    print(f"  • 平均覆蓋率: Qwen3={fmt_pct(q_cov)}, Breeze={fmt_pct(b_cov)}")
+    print(f" • 平均覆蓋率: Qwen3={fmt_pct(q_cov)}, Breeze={fmt_pct(b_cov)}")
     avg_jacc = sum(p.char_jaccard for p in pairs) / len(pairs)
     avg_sim = sum(p.char_sim for p in pairs) / len(pairs)
-    print(f"  • 跨模型同意度: Jaccard={avg_jacc:.3f}, SeqSim={avg_sim:.3f}")
+    print(f" • 跨模型同意度: Jaccard={avg_jacc:.3f}, SeqSim={avg_sim:.3f}")
 
     # ─── Markdown 輸出 ───
     out_p = Path(args.out); out_p.parent.mkdir(parents=True, exist_ok=True)
@@ -419,7 +419,7 @@ def main():
     md.append(f"**配置**: 兩者均 bf16 + cuDNN-SDPA + OpenCC s2twp 後處理\n\n")
 
     if timing:
-        md.append("## ⚡ 速度\n")
+        md.append("##  速度\n")
         md.append("| 檔名 | 時長 | Breeze ASR | Breeze RTF | Qwen3 ASR | Qwen3 RTF | 勝者 |")
         md.append("|---|---:|---:|---:|---:|---:|:--:|")
         for p in pairs:
@@ -428,13 +428,13 @@ def main():
             br_rtf = t["dur"] / max(t["breeze_asr"], 1e-9)
             q3_rtf = t["dur"] / max(t["qwen3_asr"], 1e-9)
             md.append(f"| {p.file} | {t['dur']/60:.2f}min | {t['breeze_asr']:.2f}s | {br_rtf:.0f}x | "
-                      f"{t['qwen3_asr']:.2f}s | {q3_rtf:.0f}x | {'Q3 ⚡' if q3_rtf>br_rtf else 'Br ⚡'} |")
+                      f"{t['qwen3_asr']:.2f}s | {q3_rtf:.0f}x | {'Q3 ' if q3_rtf>br_rtf else 'Br '} |")
         md.append(f"| **總計** | **{tot_dur/60:.1f}min** | **{tot_b:.1f}s** | "
                   f"**{tot_dur/max(tot_b,1e-9):.0f}x** | **{tot_q:.1f}s** | "
                   f"**{tot_dur/max(tot_q,1e-9):.0f}x** | — |")
         md.append("")
 
-    md.append("## 🎯 覆蓋率 / 幻覺信號\n")
+    md.append("##  覆蓋率 / 幻覺信號\n")
     md.append("| 檔名 | Q3 cov% | Br cov% | Q3 >60s | Br >60s | Q3 halluc | Br halluc |")
     md.append("|---|---:|---:|---:|---:|---:|---:|")
     for p in pairs:
@@ -444,13 +444,13 @@ def main():
                   f"{q.halluc_score:.3f} | {b.halluc_score:.3f} |")
     md.append("")
 
-    md.append("## 🏆 綜合品質分\n")
+    md.append("##  綜合品質分\n")
     md.append("計算式: 0.35 × 覆蓋率 + 0.20 × 中文密度合理性 + 0.15 × 繁體率 + 0.15 × 詞彙多樣性 + 0.15 × (1 − 幻覺分)\n")
     md.append("| 檔名 | Q3 score | Br score | 勝者 |")
     md.append("|---|---:|---:|:--:|")
     for p in pairs:
         qs, bs = p.qwen3.quality_score, p.breeze.quality_score
-        winner = "Q3 🏆" if qs > bs else ("Br 🏆" if bs > qs else "tie")
+        winner = "Q3 " if qs > bs else ("Br " if bs > qs else "tie")
         md.append(f"| {p.file} | {qs:.3f} | {bs:.3f} | {winner} |")
     md.append(f"| **平均** | **{avg_q:.3f}** | **{avg_b:.3f}** | "
               f"**{'Q3' if avg_q>avg_b else ('Br' if avg_b>avg_q else 'tie')}** |")
@@ -468,7 +468,7 @@ def main():
     md.append(f"- **幻覺失控**: Qwen3={q_long}, Breeze={b_long}")
 
     out_p.write_text("\n".join(md), encoding="utf-8")
-    print(f"\n💾 Markdown → {out_p}")
+    print(f"\n Markdown → {out_p}")
 
 
 if __name__ == "__main__":

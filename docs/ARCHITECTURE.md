@@ -4,13 +4,13 @@
 
 ```
                 ┌────────────────────────────────────────┐
-input audio ──▶ │ ffmpeg pipe → numpy float32 16k mono   │  (AudioIO.decode_to_array)
+input audio ──▶ │ ffmpeg pipe → numpy float32 16k mono   │ (AudioIO.decode_to_array)
 (.mp3/.m4a/.    └────────────────┬───────────────────────┘
  wav/.mp4/...)                   │
                                  ▼
                 ┌────────────────────────────────────────┐
-                │ Silero VAD (ONNX CPU SIMD)             │  ≤28s chunks, 0.4s pad
-                │  → list[{audio, start, end}]            │
+                │ Silero VAD (ONNX CPU SIMD)             │ ≤28s chunks, 0.4s pad
+                │ → list[{audio, start, end}]            │
                 └────────────────┬───────────────────────┘
                                  │
               ┌──────────────────┼──────────────────┐
@@ -19,7 +19,7 @@ input audio ──▶ │ ffmpeg pipe → numpy float32 16k mono   │  (AudioIO
     │ Qwen3-ASR-1.7B       │              │ Breeze-ASR-25            │
     │ + ForcedAligner-0.6B │              │ (Whisper-Large-v2 FT)    │
     │ HF transformers      │              │ via faster-whisper /     │
-    │ bf16, sdpa, batch=48 │              │  CTranslate2 bf16,       │
+    │ bf16, sdpa, batch=48 │              │ CTranslate2 bf16,       │
     │ length-sorted        │              │ batch=32, beam=5         │
     │ + multi-file pool    │              │ + clip_timestamps        │
     │ + warmup             │              │ + initial_prompt/hotword │
@@ -33,7 +33,7 @@ input audio ──▶ │ ffmpeg pipe → numpy float32 16k mono   │  (AudioIO
                 ┌────────┼─────────────┐
                 ▼        ▼             ▼
             ┌─────┐ ┌──────────┐ ┌──────────────┐
-            │ TXT │ │   SRT    │ │ JSON (full)  │
+            │ TXT │ │   SRT    │ │ JSON (full) │
             └─────┘ └──────────┘ └──────────────┘
 
        Optional post-processing
@@ -52,7 +52,7 @@ input audio ──▶ │ ffmpeg pipe → numpy float32 16k mono   │  (AudioIO
 |---|---|
 | `_asr_common.py` | Env init, ffmpeg pipe IO, OpenCC s2twp, Silero VAD, length-sorted batching, Stopwatch, glossary loader, `Segment` dataclass |
 | `qwen3_asr.py`   | Qwen3-ASR-1.7B + ForcedAligner-0.6B; multi-file chunk pool; `--no-aligner` |
-| `breeze_asr.py`  | Breeze-ASR-25 (Whisper-Large-v2 FT); manual VAD + clip_timestamps; `--glossary-file` for hot-word injection; `--fast` for int8 quant |
+| `breeze_asr.py` | Breeze-ASR-25 (Whisper-Large-v2 FT); manual VAD + clip_timestamps; `--glossary-file` for hot-word injection; `--fast` for int8 quant |
 | `polish.py`      | Qwen3-8B LLM context-correction with NTU glossary protection (won't touch proper nouns) |
 | `diarize.py`     | pyannote.audio speaker diarization; assigns `speaker_id` to each ASR segment by max time-overlap |
 | `cer_eval.py`    | Character Error Rate / WER, using jiwer + s2twp normalization for fair simplified-vs-traditional comparison |
@@ -100,10 +100,10 @@ This is why Breeze ends up faster than Qwen3 in v3+ benchmarks despite Qwen3 bei
 ```
 56 tests · 4 priority tiers
 ─────────────────────────────
-@breeze_invariant    (5)  ← never-fail; protects MediaTek-Research/Breeze-ASR-25 model id
-@fast               (47)  ← no model load, ~1s
-@medium              (4)  ← VAD only, ~5s
-@slow                (0)  ← model-loading e2e (intentionally not in default suite)
+@breeze_invariant    (5) ← never-fail; protects MediaTek-Research/Breeze-ASR-25 model id
+@fast               (47) ← no model load, ~1s
+@medium              (4) ← VAD only, ~5s
+@slow                (0) ← model-loading e2e (intentionally not in default suite)
 ```
 
 Run subsets:

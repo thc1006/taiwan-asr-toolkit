@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🇹🇼 Taiwan ASR Toolkit
+# Taiwan ASR Toolkit
 
 ### Production-grade Traditional Chinese (Taiwan Mandarin) speech-to-text — **RTF up to 1554×** on a single RTX 5090
 
@@ -18,15 +18,15 @@
 
 ---
 
-## ✨ Why this exists
+## Why this exists
 
 If you've tried `openai/whisper-large-v3` or `whisperX` on **Taiwan Mandarin recordings**, you've hit:
 
-- 🇨🇳 Output is **Simplified Chinese** by default (you keep getting `软件` instead of `軟體`)
-- 🌀 Whisper's built-in VAD silently fails on long sparse audio → 一個 48-min 失控段
-- 📚 **Proper nouns die**: `延三舍 / 研三舍` (NTU dorms) become `圓三 / 圓山`
-- ⚙️ Generic Whisper is **not tuned for Taiwan vocabulary** — homophone errors everywhere
-- 🐢 Variable-length VAD chunks waste 5-10× compute through padding
+- Output is **Simplified Chinese** by default (you keep getting `软件` instead of `軟體`)
+- Whisper's built-in VAD silently fails on long sparse audio → 一個 48-min 失控段
+- **Proper nouns die**: `延三舍 / 研三舍` (NTU dorms) become `圓三 / 圓山`
+- Generic Whisper is **not tuned for Taiwan vocabulary** — homophone errors everywhere
+- Variable-length VAD chunks waste 5-10× compute through padding
 
 This toolkit fixes all of those. Two production-grade Mandarin ASR models, **identical pipeline** for fair comparison, **glossary-driven hot-word injection** at the source, **LLM polish** with proper-noun protection, **OpenCC s2twp** baked in. Tested on real lecture/interview/standard recordings.
 
@@ -34,7 +34,7 @@ This toolkit fixes all of those. Two production-grade Mandarin ASR models, **ide
 
 ---
 
-## 🚀 Quick start
+## Quick start
 
 ```bash
 # 1. Install
@@ -52,7 +52,7 @@ python breeze_asr.py path/to/your_audio.mp3 --glossary-file glossary.txt
 
 ---
 
-## 📊 Benchmarks
+## Benchmarks
 
 Real numbers on a single **RTX 5090 (Blackwell sm_120, 32 GB GDDR7)** + **i9-14900** (24 threads).
 Test corpus: **11 audio files, 712.6 minutes** (≈12 hours) of Taiwan-Mandarin lectures + interviews.
@@ -62,7 +62,7 @@ Test corpus: **11 audio files, 712.6 minutes** (≈12 hours) of Taiwan-Mandarin 
 | Audio file | Length | Breeze RTF | Qwen3 RTF |
 |---|---:|---:|---:|
 | 4-min standard recording   | 4 min | **189×** | 136× |
-| 24-min standard recording  | 24 min | **239×** | 199× |
+| 24-min standard recording | 24 min | **239×** | 199× |
 | 65-min interview          | 65 min | **341×** | 297× |
 | 140-min lecture (TASA)    | 140 min | **546×** | 448× |
 | 189-min sparse audio      | 189 min | **1554×** | 1497× |
@@ -90,24 +90,24 @@ Want to verify? `pytest tests/test_glossary_effect.py -v` — locks in the `圓�
 
 ---
 
-## ✨ Features
+## Features
 
 | | What it does |
 |---|---|
-| 🎯 **Two SOTA Mandarin ASR models** | [Qwen/Qwen3-ASR-1.7B](https://hf.co/Qwen/Qwen3-ASR-1.7B) + [MediaTek-Research/Breeze-ASR-25](https://hf.co/MediaTek-Research/Breeze-ASR-25). Both run, both compared. |
-| 🇹🇼 **Traditional Chinese always** | OpenCC `s2twp` post-processing converts any leftover 簡體 → 繁體 (Taiwan idioms): 軟件→軟體, 激光→雷射, 視頻→影片. |
-| 🔥 **Hot-word injection** | Pass a glossary file (`glossary.txt`); proper nouns get fed to Whisper's `initial_prompt` + `hotwords`. Fixes `圓三 → 研三`, `祝福二族 → 住輔二組`, etc. **at the source**. |
-| ⚡ **Symmetric pipeline** | Same Silero VAD ONNX, same chunking, same dtype on both models. The benchmark measures **the model**, not the plumbing. |
-| 🌊 **Multi-file pool batching** | Cross-file length-sorted batching keeps batch=48 fully utilized when transcribing folders of mixed-length files. |
-| 🪄 **LLM context polish** | Optional Qwen3-8B post-correction with **NTU glossary protection** (won't accidentally "fix" `研三舍` to `延長`). |
-| 👥 **Speaker diarization** | Optional pyannote 3.x integration with open-mirror fallback (no gated-license blocker). |
-| 📊 **Real CER measurement** | jiwer-based CER with s2twp normalization. Bring your own ground-truth or use the included approximate fixture. |
-| 🧪 **56 TDD tests** | Including 5 invariant tests that **lock the Breeze model ID** so optimizations can't accidentally swap to a different Whisper variant. |
-| 🚀 **Blackwell-native** | bf16 + cuDNN-SDPA + torch.compile for RTX 5090. Auto-falls back gracefully on Hopper/Ada/Ampere/CPU. |
+| **Two SOTA Mandarin ASR models** | [Qwen/Qwen3-ASR-1.7B](https://hf.co/Qwen/Qwen3-ASR-1.7B) + [MediaTek-Research/Breeze-ASR-25](https://hf.co/MediaTek-Research/Breeze-ASR-25). Both run, both compared. |
+| **Traditional Chinese always** | OpenCC `s2twp` post-processing converts any leftover 簡體 → 繁體 (Taiwan idioms): 軟件→軟體, 激光→雷射, 視頻→影片. |
+| **Hot-word injection** | Pass a glossary file (`glossary.txt`); proper nouns get fed to Whisper's `initial_prompt` + `hotwords`. Fixes `圓三 → 研三`, `祝福二族 → 住輔二組`, etc. **at the source**. |
+| **Symmetric pipeline** | Same Silero VAD ONNX, same chunking, same dtype on both models. The benchmark measures **the model**, not the plumbing. |
+| **Multi-file pool batching** | Cross-file length-sorted batching keeps batch=48 fully utilized when transcribing folders of mixed-length files. |
+| **LLM context polish** | Optional Qwen3-8B post-correction with **NTU glossary protection** (won't accidentally "fix" `研三舍` to `延長`). |
+| **Speaker diarization** | Optional pyannote 3.x integration with open-mirror fallback (no gated-license blocker). |
+| **Real CER measurement** | jiwer-based CER with s2twp normalization. Bring your own ground-truth or use the included approximate fixture. |
+| **56 TDD tests** | Including 5 invariant tests that **lock the Breeze model ID** so optimizations can't accidentally swap to a different Whisper variant. |
+| **Blackwell-native** | bf16 + cuDNN-SDPA + torch.compile for RTX 5090. Auto-falls back gracefully on Hopper/Ada/Ampere/CPU. |
 
 ---
 
-## 💻 Usage
+## Usage
 
 ### Single-file transcription
 
@@ -158,9 +158,9 @@ python polish.py transcripts/breeze/lecture_breeze.json --glossary-file glossary
 # Adds [SPEAKER_00] / [SPEAKER_01] labels to each segment
 python diarize.py transcripts/breeze/interview_breeze.json music/interview.m4a
 # Requires HF license accept on:
-#   - https://hf.co/pyannote/speaker-diarization-3.1
-#   - https://hf.co/pyannote/speaker-diarization-community-1
-#   - https://hf.co/pyannote/segmentation-3.0
+# - https://hf.co/pyannote/speaker-diarization-3.1
+# - https://hf.co/pyannote/speaker-diarization-community-1
+# - https://hf.co/pyannote/segmentation-3.0
 ```
 
 ### Benchmark + CER report
@@ -172,7 +172,7 @@ python benchmark.py --gt-dir tests/fixtures
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 audio (.mp3/.m4a/.wav/...)
@@ -190,8 +190,8 @@ Silero VAD ONNX (CPU SIMD, ~3-5× faster than PyTorch backend)
             TXT          SRT          JSON
 
    ┌──── Optional post-processing ────┐
-   │  polish.py   diarize.py   benchmark.py  │
-   │  Qwen3-8B    pyannote     CER + RTF     │
+   │ polish.py   diarize.py   benchmark.py │
+   │ Qwen3-8B    pyannote     CER + RTF     │
    └──────────────────────────────────┘
 ```
 
@@ -199,7 +199,7 @@ Full architectural details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
 ---
 
-## 📁 Project structure
+## Project structure
 
 ```
 taiwan-asr-toolkit/
@@ -220,7 +220,7 @@ taiwan-asr-toolkit/
 
 ---
 
-## 🧪 Testing & contributing
+## Testing & contributing
 
 ```bash
 # All 56 tests, no model load required for "fast" tier
@@ -243,22 +243,22 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full guide.
 
 ---
 
-## 🤝 vs alternatives
+## vs alternatives
 
 | | This toolkit | `whisperX` | `faster-whisper` (raw) | `openai/whisper` |
 |---|:---:|:---:|:---:|:---:|
-| Taiwan Traditional Chinese by default | ✅ s2twp baked-in | ❌ | ❌ | ❌ |
-| Two SOTA Mandarin models compared | ✅ Qwen3 + Breeze | ❌ Whisper only | ❌ Whisper only | ❌ Whisper only |
-| Fixes `圓三/延三 → 研三` proper-noun ASR errors | ✅ glossary hot-word | ❌ | ⚠️ manual prompt | ❌ |
-| LLM context polish with proper-noun protection | ✅ Qwen3-8B + glossary | ❌ | ❌ | ❌ |
-| Speaker diarization (open-mirror fallback) | ✅ tensorlake mirror | ✅ pyannote (gated) | ❌ | ❌ |
-| RTX 5090 / Blackwell native (bf16 + cuDNN-SDPA) | ✅ | ⚠️ | ⚠️ | ❌ |
-| TDD with model-invariant lock | ✅ 56 tests | ❌ | ❌ | ❌ |
+| Taiwan Traditional Chinese by default | s2twp baked-in | |  | |
+| Two SOTA Mandarin models compared | Qwen3 + Breeze | Whisper only | Whisper only | Whisper only |
+| Fixes `圓三/延三 → 研三` proper-noun ASR errors | glossary hot-word | |  manual prompt | |
+| LLM context polish with proper-noun protection | Qwen3-8B + glossary | |  | |
+| Speaker diarization (open-mirror fallback) | tensorlake mirror | pyannote (gated) | |  |
+| RTX 5090 / Blackwell native (bf16 + cuDNN-SDPA) | |  | |  |
+| TDD with model-invariant lock | 56 tests | |  | |
 | Best RTF on long Mandarin audio | **1554×** | ~70× | ~250× | ~30× |
 
 ---
 
-## 📚 Citation & credits
+## Citation & credits
 
 This toolkit is **integration plumbing** — credit goes to the model authors:
 
@@ -274,7 +274,7 @@ If this toolkit helps your research, please cite the underlying models. A toolki
 
 ```bibtex
 @software{taiwan_asr_toolkit,
-  title  = {Taiwan ASR Toolkit: Production-grade Traditional Chinese Speech-to-Text Pipeline},
+  title = {Taiwan ASR Toolkit: Production-grade Traditional Chinese Speech-to-Text Pipeline},
   author = {Taiwan ASR Toolkit Contributors},
   year   = {2026},
   url    = {https://github.com/thc1006/taiwan-asr-toolkit},
@@ -284,7 +284,7 @@ If this toolkit helps your research, please cite the underlying models. A toolki
 
 ---
 
-## 📜 License
+## License
 
 MIT for this toolkit's code. See [`LICENSE`](LICENSE).
 
@@ -298,9 +298,9 @@ Third-party model licenses (you must comply with each):
 
 <div align="center">
 
-**Made with bf16 tensor cores in Taiwan 🇹🇼**
+**Made with bf16 tensor cores in Taiwan **
 
-If this toolkit saved you hours, **drop a ⭐ star** — it helps more people find it.
+If this toolkit saved you hours, **drop a star** — it helps more people find it.
 
 [Report a bug](../../issues/new?template=bug_report.md) · [Request a feature](../../issues/new?template=feature_request.md) · [Discuss](../../discussions)
 

@@ -166,8 +166,8 @@ def main():
     if args.json:
         print(json.dumps(m, ensure_ascii=False, indent=2))
     else:
-        print(f"📊 CER: {m['cer']*100:.2f}%  ({m['ref_chars']} ref chars, {m['hyp_chars']} hyp chars)")
-        print(f"   Sub: {m['substitutions']}  Del: {m['deletions']}  Ins: {m['insertions']}  Hits: {m['hits']}")
+        print(f" CER: {m['cer']*100:.2f}%  ({m['ref_chars']} ref chars, {m['hyp_chars']} hyp chars)")
+        print(f" Sub: {m['substitutions']}  Del: {m['deletions']}  Ins: {m['insertions']}  Hits: {m['hits']}")
 
 
 if __name__ == "__main__":

@@ -11,9 +11,9 @@ Breeze-ASR-25 (台灣華語) 極致優化版 v2 — RTX 5090 (Blackwell sm_120)
   默認 BatchedInferencePipeline batch=24 (5090 32GB 餵得飽)
 
 「免費」加速 (準度 0 損失):
-  ★ ONNX Silero VAD (faster-whisper 內建即用,3-5x VAD 速度)
-  ★ ffmpeg pipe 直讀 f32le (skip 暫存 wav)
-  ★ 24 核 CPU 全開 (OMP/MKL/cpu_threads)
+   ONNX Silero VAD (faster-whisper 內建即用,3-5x VAD 速度)
+   ffmpeg pipe 直讀 f32le (skip 暫存 wav)
+   24 核 CPU 全開 (OMP/MKL/cpu_threads)
 
 額外旗標 (使用者自選 trade-off):
   --fast              compute_type=int8_bfloat16 (1.5-1.7x 速度,中文 CER +0.3-0.5%)
@@ -149,7 +149,7 @@ class FasterWhisperBackend:
         marker = os.path.join(self.ct2_dir, "model.bin")
         if os.path.isfile(marker):
             return
-        print(f"📦 首次使用,將 Breeze-ASR-25 轉 CTranslate2 (基底 bfloat16,可 load 時降級)…")
+        print(f" 首次使用,將 Breeze-ASR-25 轉 CTranslate2 (基底 bfloat16,可 load 時降級)…")
         os.makedirs(self.ct2_dir, exist_ok=True)
         cmd = [
             "ct2-transformers-converter",
@@ -183,11 +183,11 @@ class FasterWhisperBackend:
         )
         try:
             self.batched = BatchedInferencePipeline(model=self.model)
-            print(f"✅ faster-whisper + BatchedInferencePipeline 就緒 ({time.time()-t0:.1f}s)")
+            print(f" faster-whisper + BatchedInferencePipeline 就緒 ({time.time()-t0:.1f}s)")
         except Exception:
             self.batched = None
-            print(f"✅ faster-whisper 就緒 (no batched pipeline) ({time.time()-t0:.1f}s)")
-        print(f"📝 OpenCC: {self.s2tw}  |  manual_vad={self.use_manual_vad}")
+            print(f" faster-whisper 就緒 (no batched pipeline) ({time.time()-t0:.1f}s)")
+        print(f" OpenCC: {self.s2tw}  |  manual_vad={self.use_manual_vad}")
 
         # 暖機:跑 1 秒 dummy 讓 cuDNN/CT2 把 kernel JIT 完
         try:
@@ -198,9 +198,9 @@ class FasterWhisperBackend:
                 vad_filter=False, word_timestamps=False,
             )
             for _ in iter_w: pass
-            print(f"🔥 warmup 完成 ({time.time()-t1:.2f}s)")
+            print(f" warmup 完成 ({time.time()-t1:.2f}s)")
         except Exception as e:
-            print(f"   (warmup 略過: {type(e).__name__})")
+            print(f" (warmup 略過: {type(e).__name__})")
         return self
 
     def transcribe(self, src_file: str, language: str = "zh") -> tuple:
@@ -231,7 +231,7 @@ class FasterWhisperBackend:
         if hotwords:
             common["hotwords"] = hotwords
 
-        # ★ 與 Qwen3 對等 pipeline:用我們自己的 ONNX Silero VAD,
+        #  與 Qwen3 對等 pipeline:用我們自己的 ONNX Silero VAD,
         #   把每段語音時間戳餵給 faster-whisper,
         #   完全跳過內建 VAD (那是 11 個 >60s 失控段的元兇)。
         # API 差異:BatchedInferencePipeline 用 list-of-dict;非 batched 用 flat list。
@@ -239,7 +239,7 @@ class FasterWhisperBackend:
             chunks = self.vad.speech_chunks(audio)
             sw.lap(f"VAD ({self.vad._using})")
             n_chunks = len(chunks)
-            print(f"🎬 音訊: {dur:.1f}s | 我方 VAD: {n_chunks} 段 (每段 ≤{self.cfg.chunk_sec}s) | "
+            print(f" 音訊: {dur:.1f}s | 我方 VAD: {n_chunks} 段 (每段 ≤{self.cfg.chunk_sec}s) | "
                   f"batch={self.cfg.batch_size} | beam={self.beam}")
             common["vad_filter"] = False
             if n_chunks == 0:
@@ -264,7 +264,7 @@ class FasterWhisperBackend:
                 speech_pad_ms=400,
                 max_speech_duration_s=self.cfg.chunk_sec,  # 強制 ≤28s
             )
-            print(f"🎬 音訊: {dur:.1f}s | fw 內建 VAD (max={self.cfg.chunk_sec}s) | "
+            print(f" 音訊: {dur:.1f}s | fw 內建 VAD (max={self.cfg.chunk_sec}s) | "
                   f"batch={self.cfg.batch_size} | beam={self.beam}")
 
         t0 = time.time()
@@ -305,7 +305,7 @@ class FasterWhisperBackend:
                 last_print = now
         print()
         sw.lap("ASR (faster-whisper + s2twp)")
-        print(f"✅ Breeze 完成 | 段 {len(out)} | 耗 {time.time()-t0:.1f}s | "
+        print(f" Breeze 完成 | 段 {len(out)} | 耗 {time.time()-t0:.1f}s | "
               f"音訊 {dur:.1f}s | RTF={dur/max(time.time()-t0,1e-3):.1f}x | "
               f"lang {info.language} (信心 {info.language_probability:.2f})")
         return out, sw
@@ -345,9 +345,9 @@ class TransformersBackend:
                     model.forward, mode=self.compile_mode,
                     fullgraph=True, dynamic=False,
                 )
-                print(f"⚡ torch.compile 已啟用 (mode={self.compile_mode})")
+                print(f" torch.compile 已啟用 (mode={self.compile_mode})")
             except Exception as e:
-                print(f"   ℹ️  torch.compile 略過: {type(e).__name__}: {str(e)[:100]}")
+                print(f" ℹ  torch.compile 略過: {type(e).__name__}: {str(e)[:100]}")
 
         self.pipe = pipeline(
             "automatic-speech-recognition",
@@ -357,8 +357,8 @@ class TransformersBackend:
             chunk_length_s=30, stride_length_s=(6, 2),
             return_timestamps=True,
         )
-        print(f"✅ transformers 就緒 ({time.time()-t0:.1f}s)")
-        print(f"📝 OpenCC: {self.s2tw}")
+        print(f" transformers 就緒 ({time.time()-t0:.1f}s)")
+        print(f" OpenCC: {self.s2tw}")
         return self
 
     @torch.inference_mode()
@@ -381,7 +381,7 @@ class TransformersBackend:
             dur = sf.info(src_file).duration
         except Exception:
             dur = 0.0
-        print(f"🚀 推論中 (batch={self.cfg.batch_size}, beam={self.beam})…")
+        print(f" 推論中 (batch={self.cfg.batch_size}, beam={self.beam})…")
         t0 = time.time()
         result = self.pipe(src_file, batch_size=self.cfg.batch_size, generate_kwargs=gen_kwargs)
         el = time.time() - t0
@@ -403,7 +403,7 @@ class TransformersBackend:
         if not out and isinstance(result, dict) and result.get("text"):
             out.append(Segment(0.0, dur, self.s2tw(result["text"].strip())))
         sw.lap("post (s2twp)")
-        print(f"✅ Breeze 完成 | 段 {len(out)} | 耗 {el:.1f}s | "
+        print(f" Breeze 完成 | 段 {len(out)} | 耗 {el:.1f}s | "
               f"音訊 {dur:.1f}s | RTF={dur/max(el,1e-3):.1f}x")
         return out, sw
 
@@ -422,8 +422,8 @@ def select_backend(cfg, beam, s2tw, requested: str,
                                         glossary=glossary)
         except ImportError:
             if requested != "auto":
-                raise SystemExit("❌ 未安裝 faster-whisper / ctranslate2")
-            print("ℹ️  faster-whisper 不可用,改用 transformers backend")
+                raise SystemExit(" 未安裝 faster-whisper / ctranslate2")
+            print("ℹ  faster-whisper 不可用,改用 transformers backend")
     return TransformersBackend(cfg, beam, s2tw)
 
 
@@ -449,31 +449,31 @@ def main():
     args = ap.parse_args()
 
     print("=" * 72)
-    print("🇹🇼 Breeze-ASR-25 v2 (5090 Blackwell + bf16 + beam=5 + s2twp + 24 核 CPU)")
+    print(" Breeze-ASR-25 v2 (5090 Blackwell + bf16 + beam=5 + s2twp + 24 核 CPU)")
     print("=" * 72)
     cfg = detect_hw(fast=args.fast)
     if args.batch > 0: cfg.batch_size = args.batch
-    print(f"🔧 {cfg.desc}  CPU threads={_NCPU}")
-    print(f"   dtype={cfg.dtype} | ct2_compute={cfg.ct2_compute} | "
+    print(f" {cfg.desc}  CPU threads={_NCPU}")
+    print(f" dtype={cfg.dtype} | ct2_compute={cfg.ct2_compute} | "
           f"batch={cfg.batch_size} | beam={args.beam}")
 
     s2tw = S2TW(not args.no_s2tw)
     glossary = load_glossary(args.glossary_file) if args.glossary_file else []
     if glossary:
-        print(f"📚 Glossary: {len(glossary)} 詞 → 注入 initial_prompt + hotwords")
+        print(f" Glossary: {len(glossary)} 詞 → 注入 initial_prompt + hotwords")
     backend = select_backend(cfg, args.beam, s2tw, args.backend,
                              use_manual_vad=not args.internal_vad,
                              glossary=glossary)
     if isinstance(backend, TransformersBackend) and args.no_compile:
         backend.compile_mode = None
-    print(f"🧠 backend = {backend.NAME}")
+    print(f" backend = {backend.NAME}")
     backend.load()
 
     for src in args.inputs:
         if not os.path.exists(src):
-            print(f"❌ 找不到 {src}"); continue
+            print(f" 找不到 {src}"); continue
         print("\n" + "─" * 72)
-        print(f"📄 {src}")
+        print(f" {src}")
         segs, sw = backend.transcribe(src, language=args.lang)
         sw.report()
         save_outputs(segs, src, args.out, suffix="breeze")
@@ -481,7 +481,7 @@ def main():
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
     gc.collect()
-    print("\n🧹 完成。")
+    print("\n 完成。")
 
 
 if __name__ == "__main__":
