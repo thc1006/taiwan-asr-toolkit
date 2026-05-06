@@ -10,9 +10,9 @@
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](pyproject.toml)
 [![CUDA](https://img.shields.io/badge/CUDA-12.8%20%7C%20Blackwell%20sm__120-76B900)](docs/INSTALL.md)
 [![License](https://img.shields.io/badge/license-MIT-purple)](LICENSE)
-[![繁體中文](https://img.shields.io/badge/output-繁體中文%20s2twp-red)](#-features)
+[![繁體中文](https://img.shields.io/badge/output-繁體中文%20s2twp-red)](#features)
 
-[**Why this exists**](#-why-this-exists) · [**Quick start**](#-quick-start) · [**Benchmarks**](#-benchmarks) · [**Usage**](#-usage) · [**Architecture**](docs/ARCHITECTURE.md)
+[**Why this exists**](#why-this-exists) · [**Quick start**](#quick-start) · [**Benchmarks**](#benchmarks) · [**Usage**](#usage) · [**Architecture**](docs/ARCHITECTURE.md)
 
 </div>
 
