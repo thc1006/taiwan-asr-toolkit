@@ -58,7 +58,7 @@ then `_asr_common.py::load_glossary` (GREEN).
 git clone https://github.com/thc1006/taiwan-asr-toolkit.git
 cd taiwan-asr-toolkit
 
-# uv recommended (10-100× faster than pip)
+# uv recommended (10-100x faster than pip)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 uv pip install --system --index-url https://download.pytorch.org/whl/cu128 torch torchaudio
 uv pip install --system -e ".[dev,all]"

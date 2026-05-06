@@ -20,14 +20,14 @@ python -c "import torch; print(torch.cuda.is_available(), torch.cuda.get_device_
 
 ## Quick install (uv recommended)
 
-[uv](https://github.com/astral-sh/uv) installs Python deps 10–100× faster than pip.
+[uv](https://github.com/astral-sh/uv) installs Python deps 10–100x faster than pip.
 
 ```bash
 # Install uv (one-time)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Clone repo
-git clone https://github.com/your-org/taiwan-asr-toolkit.git
+git clone https://github.com/thc1006/taiwan-asr-toolkit.git
 cd taiwan-asr-toolkit
 
 # Install PyTorch first (cu128 wheels for Blackwell; use cu124 for older GPUs)

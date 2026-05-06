@@ -74,8 +74,8 @@ far worse than English. This is the **single most important** Chinese-ASR settin
 ### 3. Length-sorted batching (Qwen3)
 
 VAD produces highly variable chunk lengths (0.4s–28s). Naive batching pads to the longest in batch
-→ 5–10× compute waste. Sorting chunks by length descending and grouping similar-length together
-brings padding waste below 2×. Free 1.5–3× speedup, zero accuracy cost.
+→ 5–10x compute waste. Sorting chunks by length descending and grouping similar-length together
+brings padding waste below 2x. Free 1.5–3x speedup, zero accuracy cost.
 
 ### 4. Multi-file chunk pool (Qwen3 v4)
 

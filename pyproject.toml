@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "taiwan-asr-toolkit"
 version = "0.5.0"
-description = "Production-grade Traditional Chinese / Taiwan Mandarin ASR toolkit — Qwen3-ASR + Breeze-ASR-25, LLM polish, speaker diarization, RTX 5090 / Blackwell tuned, RTF up to 1500x."
+description = "Production-grade Traditional Chinese / Taiwan Mandarin ASR toolkit — Qwen3-ASR + Breeze-ASR-25, LLM polish, speaker diarization, RTX 5090 / Blackwell tuned, RTF up to 1554x."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
@@ -18,7 +18,7 @@ keywords = [
     "rtx-5090", "blackwell", "cuda", "tdd",
 ]
 authors = [
-    { name = "Taiwan ASR Toolkit Contributors" },
+    { name = "thc1006", email = "84045975+thc1006@users.noreply.github.com" },
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -70,11 +70,11 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-org/taiwan-asr-toolkit"
-Documentation = "https://github.com/your-org/taiwan-asr-toolkit/blob/main/docs/"
-Repository = "https://github.com/your-org/taiwan-asr-toolkit.git"
-Issues = "https://github.com/your-org/taiwan-asr-toolkit/issues"
-Benchmarks = "https://github.com/your-org/taiwan-asr-toolkit/blob/main/docs/BENCHMARK.md"
+Homepage = "https://github.com/thc1006/taiwan-asr-toolkit"
+Documentation = "https://github.com/thc1006/taiwan-asr-toolkit/blob/main/docs/"
+Repository = "https://github.com/thc1006/taiwan-asr-toolkit.git"
+Issues = "https://github.com/thc1006/taiwan-asr-toolkit/issues"
+Benchmarks = "https://github.com/thc1006/taiwan-asr-toolkit/blob/main/docs/BENCHMARK.md"
 
 # CLI 入口 (pip install -e . 後可用)
 [project.scripts]

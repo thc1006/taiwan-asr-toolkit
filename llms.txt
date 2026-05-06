@@ -1,12 +1,12 @@
 # Taiwan ASR Toolkit
 
-> Production-grade Traditional Chinese (Taiwan Mandarin) speech-to-text toolkit. Two SOTA Mandarin ASR models (Qwen3-ASR-1.7B + MediaTek Breeze-ASR-25) with identical pipelines for fair comparison, hot-word injection at the source, OpenCC s2twp Traditional-Chinese-Taiwan conversion, optional Qwen3-8B LLM polish, optional pyannote speaker diarization. Tuned for RTX 5090 / Blackwell sm_120 with RTF up to 1554× on long sparse audio.
+> Production-grade Traditional Chinese (Taiwan Mandarin) speech-to-text toolkit. Two SOTA Mandarin ASR models (Qwen3-ASR-1.7B + MediaTek Breeze-ASR-25) with identical pipelines for fair comparison, hot-word injection at the source, OpenCC s2twp Traditional-Chinese-Taiwan conversion, optional Qwen3-8B LLM polish, optional pyannote speaker diarization. Tuned for RTX 5090 / Blackwell sm_120 with RTF up to 1554x on long sparse audio.
 
 This toolkit is for users who: (1) want Traditional Chinese (Taiwan) output, not Simplified, (2) need to transcribe Mandarin audio with proper nouns Whisper doesn't know (e.g., NTU dorm names), (3) want speed AND accuracy, not a tradeoff, (4) value reproducibility (56 TDD tests including 5 invariants that lock `MediaTek-Research/Breeze-ASR-25` as the Breeze model).
 
 ## Documentation
 
-- [README](README.md): Hero, quick start, benchmarks (RTF 382× combined, 1554× single file), feature comparison vs whisperX/faster-whisper/openai-whisper
+- [README](README.md): Hero, quick start, benchmarks (RTF 382x combined, 1554x single file), feature comparison vs whisperX/faster-whisper/openai-whisper
 - [INSTALL.md](docs/INSTALL.md): Step-by-step install for RTX 5090 + cu128, uv recommended, HF token setup, pyannote license accept
 - [BENCHMARK.md](docs/BENCHMARK.md): Full results across 11 audio files (712 min total), v2 → v3 → v4 → v5 evolution, real CER measurement
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md): Pipeline diagram, design rationale (why same VAD on both sides, why hot-word at source, etc.)

@@ -2,7 +2,7 @@
 
 # Taiwan ASR Toolkit
 
-### Production-grade Traditional Chinese (Taiwan Mandarin) speech-to-text — **RTF up to 1554×** on a single RTX 5090
+### Production-grade Traditional Chinese (Taiwan Mandarin) speech-to-text — **RTF up to 1554x** on a single RTX 5090
 
 **Qwen3-ASR-1.7B** + **MediaTek Breeze-ASR-25** · Hot-word injection · LLM context polish · Speaker diarization · OpenCC s2twp · 56 TDD tests
 
@@ -26,7 +26,7 @@ If you've tried `openai/whisper-large-v3` or `whisperX` on **Taiwan Mandarin rec
 - Whisper's built-in VAD silently fails on long sparse audio → 一個 48-min 失控段
 - **Proper nouns die**: `延三舍 / 研三舍` (NTU dorms) become `圓三 / 圓山`
 - Generic Whisper is **not tuned for Taiwan vocabulary** — homophone errors everywhere
-- Variable-length VAD chunks waste 5-10× compute through padding
+- Variable-length VAD chunks waste 5-10x compute through padding
 
 This toolkit fixes all of those. Two production-grade Mandarin ASR models, **identical pipeline** for fair comparison, **glossary-driven hot-word injection** at the source, **LLM polish** with proper-noun protection, **OpenCC s2twp** baked in. Tested on real lecture/interview/standard recordings.
 
@@ -61,12 +61,12 @@ Test corpus: **11 audio files, 712.6 minutes** (≈12 hours) of Taiwan-Mandarin 
 
 | Audio file | Length | Breeze RTF | Qwen3 RTF |
 |---|---:|---:|---:|
-| 4-min standard recording   | 4 min | **189×** | 136× |
-| 24-min standard recording | 24 min | **239×** | 199× |
-| 65-min interview          | 65 min | **341×** | 297× |
-| 140-min lecture (TASA)    | 140 min | **546×** | 448× |
-| 189-min sparse audio      | 189 min | **1554×** | 1497× |
-| **All 11 files combined** | **712 min** | **382×** | **354×** |
+| 4-min standard recording   | 4 min | **189x** | 136x |
+| 24-min standard recording | 24 min | **239x** | 199x |
+| 65-min interview          | 65 min | **341x** | 297x |
+| 140-min lecture (TASA)    | 140 min | **546x** | 448x |
+| 189-min sparse audio      | 189 min | **1554x** | 1497x |
+| **All 11 files combined** | **712 min** | **382x** | **354x** |
 | **Total ASR time** | | **111.9 s** | **126.2 s** |
 
 ### Quality vs hallucination (proxy metrics, no GT)
@@ -137,7 +137,7 @@ python breeze_asr.py music/*.{mp3,m4a,wav} --glossary-file glossary.txt
 | Flag | Effect |
 |---|---|
 | `--glossary-file PATH` | (Breeze) Inject domain terms via Whisper's prompt + hotwords. Default `glossary.txt` ships with NTU dorm/dept names. |
-| `--fast` | (Breeze) `int8_bfloat16` quantization, ~1.5× speedup, +0.3-0.5% CER on Mandarin |
+| `--fast` | (Breeze) `int8_bfloat16` quantization, ~1.5x speedup, +0.3-0.5% CER on Mandarin |
 | `--beam N` | (Breeze) Beam size; default 5. `--beam 1` = greedy (fastest), `--beam 10` = max accuracy |
 | `--no-aligner` | (Qwen3) Skip ForcedAligner-0.6B; ~25% faster but loses word-level timestamps |
 | `--no-pool` | (Qwen3) Disable cross-file chunk pooling for multi-file runs |
@@ -178,7 +178,7 @@ python benchmark.py --gt-dir tests/fixtures
 audio (.mp3/.m4a/.wav/...)
        ↓ ffmpeg pipe → numpy float32 16kHz mono
        ↓
-Silero VAD ONNX (CPU SIMD, ~3-5× faster than PyTorch backend)
+Silero VAD ONNX (CPU SIMD, ~3-5x faster than PyTorch backend)
        ↓ ≤28s chunks
        ├──→ Qwen3-ASR-1.7B + ForcedAligner (HF transformers, bf16, batch=48)
        └──→ Breeze-ASR-25 (CTranslate2, bf16, batch=32, beam=5, hotwords)
@@ -254,7 +254,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full guide.
 | Speaker diarization (open-mirror fallback) | tensorlake mirror | pyannote (gated) | |  |
 | RTX 5090 / Blackwell native (bf16 + cuDNN-SDPA) | |  | |  |
 | TDD with model-invariant lock | 56 tests | |  | |
-| Best RTF on long Mandarin audio | **1554×** | ~70× | ~250× | ~30× |
+| Best RTF on long Mandarin audio | **1554x** | ~70x | ~250x | ~30x |
 
 ---
 

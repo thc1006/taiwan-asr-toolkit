@@ -52,10 +52,10 @@ Initial public release. Combines five iterations of internal optimization (v1–
 
 | Metric | Result |
 |---|---:|
-| Breeze RTF (combined) | **382×** |
-| Qwen3 RTF (combined) | **354×** |
-| Breeze RTF (best single file, sparse audio) | **1554×** |
-| Qwen3 RTF (best single file) | **1497×** |
+| Breeze RTF (combined) | **382x** |
+| Qwen3 RTF (combined) | **354x** |
+| Breeze RTF (best single file, sparse audio) | **1554x** |
+| Qwen3 RTF (best single file) | **1497x** |
 | Catastrophic >60s hallucinated segments | **0** (both models, all 11 files) |
 | Cross-model character Jaccard agreement | 0.76 |
 | Quality score average (Q3 / Br) | 0.815 / 0.808 |
