@@ -12,13 +12,13 @@ import pytest
 
 @pytest.mark.fast
 def test_cer_eval_module_exists():
-    import cer_eval
+    from taiwan_asr import cer_eval
     assert hasattr(cer_eval, "compute_cer")
 
 
 @pytest.mark.fast
 def test_compute_cer_simple_insertion():
-    from cer_eval import compute_cer
+    from taiwan_asr.cer_eval import compute_cer
     # ref: '我們吃飯' (4 chars), hyp: '我們吃完飯' (5 chars) — 1 insertion
     cer = compute_cer("我們吃飯", "我們吃完飯")
     assert abs(cer - 0.25) < 0.05, f"CER 應約 0.25, 實際 {cer}"
@@ -26,20 +26,20 @@ def test_compute_cer_simple_insertion():
 
 @pytest.mark.fast
 def test_compute_cer_perfect_match():
-    from cer_eval import compute_cer
+    from taiwan_asr.cer_eval import compute_cer
     assert compute_cer("這是測試", "這是測試") == 0.0
 
 
 @pytest.mark.fast
 def test_compute_cer_normalizes_punctuation():
-    from cer_eval import compute_cer
+    from taiwan_asr.cer_eval import compute_cer
     cer = compute_cer("這是測試。", "這是測試,")
     assert cer == 0.0, f"標點差異不應計入 CER, 實際 {cer}"
 
 
 @pytest.mark.fast
 def test_compute_cer_normalizes_simplified_to_traditional():
-    from cer_eval import compute_cer
+    from taiwan_asr.cer_eval import compute_cer
     # 簡體 ref vs 繁體 hyp 應視為相同
     cer = compute_cer("我们吃饭", "我們吃飯")
     assert cer == 0.0, f"簡繁差異應被正規化, 實際 {cer}"
@@ -47,7 +47,7 @@ def test_compute_cer_normalizes_simplified_to_traditional():
 
 @pytest.mark.fast
 def test_compute_metrics_returns_breakdown():
-    from cer_eval import compute_metrics
+    from taiwan_asr.cer_eval import compute_metrics
     m = compute_metrics("我們吃飯", "我們吃完飯")
     assert "cer" in m and "insertions" in m and "deletions" in m
     assert "substitutions" in m and "hits" in m
@@ -58,6 +58,6 @@ def test_compute_metrics_returns_breakdown():
 
 @pytest.mark.fast
 def test_cer_handles_empty_ref():
-    from cer_eval import compute_cer
+    from taiwan_asr.cer_eval import compute_cer
     cer = compute_cer("", "abc")
     assert isinstance(cer, float)

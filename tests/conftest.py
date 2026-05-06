@@ -7,9 +7,9 @@ import json
 from pathlib import Path
 import pytest
 
-# 把專案根目錄加到 sys.path,讓 tests 可以 import 主腳本模組
+# 把 src/ 加到 sys.path,讓 tests 在沒有 pip install 的情況下也能找到 taiwan_asr 套件
 ROOT = Path(__file__).parent.parent
-sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
 
 
 @pytest.fixture(scope="session")

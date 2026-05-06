@@ -15,14 +15,14 @@ import pytest
 
 @pytest.mark.fast
 def test_faster_whisper_backend_accepts_glossary():
-    from breeze_asr import FasterWhisperBackend
+    from taiwan_asr.breeze import FasterWhisperBackend
     sig = inspect.signature(FasterWhisperBackend.__init__)
     assert "glossary" in sig.parameters, "FasterWhisperBackend.__init__ 缺 glossary 參數"
 
 
 @pytest.mark.fast
 def test_glossary_default_is_empty_list():
-    from breeze_asr import FasterWhisperBackend
+    from taiwan_asr.breeze import FasterWhisperBackend
     sig = inspect.signature(FasterWhisperBackend.__init__)
     p = sig.parameters["glossary"]
     # 預設 [] 或 None,允許任一,但行為應等同無 glossary
@@ -31,7 +31,7 @@ def test_glossary_default_is_empty_list():
 
 @pytest.mark.fast
 def test_breeze_glossary_file_cli_flag():
-    src = Path(__file__).parent.parent / "breeze_asr.py"
+    src = Path(__file__).parent.parent / "src/taiwan_asr/breeze.py"
     code = src.read_text(encoding="utf-8")
     assert "--glossary-file" in code, "缺 --glossary-file CLI 旗標"
 
@@ -41,8 +41,8 @@ def test_breeze_initial_prompt_has_glossary_terms(monkeypatch):
     """注入 glossary → initial_prompt 必須含 ≥5 個詞,且 hotwords 帶字串。"""
     import sys
     import numpy as np
-    from breeze_asr import FasterWhisperBackend, HwConfig
-    from _asr_common import S2TW
+    from taiwan_asr.breeze import FasterWhisperBackend, HwConfig
+    from taiwan_asr.common import S2TW
 
     captured = {}
 
@@ -65,7 +65,7 @@ def test_breeze_initial_prompt_has_glossary_terms(monkeypatch):
     monkeypatch.setitem(sys.modules, "faster_whisper", fw_module)
 
     # mock AudioIO + VAD
-    from _asr_common import AudioIO, SileroVAD
+    from taiwan_asr.common import AudioIO, SileroVAD
     monkeypatch.setattr(
         AudioIO, "decode_to_array",
         staticmethod(lambda src, sr=16000: (np.zeros(16000, dtype=np.float32), 1.0)),
@@ -102,8 +102,8 @@ def test_breeze_no_glossary_backward_compat(monkeypatch):
     """無 glossary 時行為不變 (initial_prompt 仍存在但不額外加詞)。"""
     import sys
     import numpy as np
-    from breeze_asr import FasterWhisperBackend, HwConfig
-    from _asr_common import S2TW
+    from taiwan_asr.breeze import FasterWhisperBackend, HwConfig
+    from taiwan_asr.common import S2TW
 
     captured = {}
 
@@ -123,7 +123,7 @@ def test_breeze_no_glossary_backward_compat(monkeypatch):
     fw_module.BatchedInferencePipeline = FakeBatched
     monkeypatch.setitem(sys.modules, "faster_whisper", fw_module)
 
-    from _asr_common import AudioIO, SileroVAD
+    from taiwan_asr.common import AudioIO, SileroVAD
     monkeypatch.setattr(
         AudioIO, "decode_to_array",
         staticmethod(lambda src, sr=16000: (np.zeros(16000, dtype=np.float32), 1.0)),

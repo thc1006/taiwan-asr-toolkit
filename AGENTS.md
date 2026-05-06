@@ -5,11 +5,11 @@ You are working on the **Taiwan ASR Toolkit**, a Traditional-Chinese speech-to-t
 ## The single non-negotiable contract
 
 ```python
-# breeze_asr.py
+# src/taiwan_asr/breeze.py
 class FasterWhisperBackend:
-    MODEL_ID = "MediaTek-Research/Breeze-ASR-25"   # ← never change this
+    MODEL_ID = "MediaTek-Research/Breeze-ASR-25"   # never change this
 class TransformersBackend:
-    MODEL_ID = "MediaTek-Research/Breeze-ASR-25"   # ← never change this
+    MODEL_ID = "MediaTek-Research/Breeze-ASR-25"   # never change this
 ```
 
 The Breeze model is **the entire reason this project exists**. It's a Whisper-Large-v2 fine-tune
@@ -30,7 +30,7 @@ Before you propose any optimization, run those tests. After you implement, run t
 ### 1. The Breeze + Qwen3 symmetry rule
 
 When changing pipeline plumbing (VAD parameters, batch logic, decoding params),
-apply the same change to **both** `breeze_asr.py` and `qwen3_asr.py`. The toolkit's
+apply the same change to **both** `src/taiwan_asr/breeze.py` and `src/taiwan_asr/qwen3.py`. The toolkit's
 benchmark legitimacy depends on identical pipelines.
 
 If you can only apply a change to one (e.g. faster-whisper has `hotwords` but qwen-asr doesn't),
@@ -53,7 +53,7 @@ text source, apply `s2tw(text)` before saving.
 
 ### 4. Glossary respects proper nouns
 
-`polish.py` MUST NOT correct entries in the glossary. The default glossary contains NTU dorm
+`src/taiwan_asr/polish.py` MUST NOT correct entries in the glossary. The default glossary contains NTU dorm
 names like `研三舍`, `延三舍`, `男一` etc. The user previously had `延三` ASR-mistranscribed,
 the LLM "fixed" it to `延長`, which destroyed the meaning. Don't repeat that.
 
@@ -75,7 +75,7 @@ extend `LANG_MAP`, don't hard-code the BCP-47 code.
 ```
 
 Concrete pattern from this codebase: see `tests/test_glossary.py` (RED for missing
-`load_glossary`) → `_asr_common.py` `load_glossary` impl → GREEN.
+`load_glossary`) → `src/taiwan_asr/common.py` `load_glossary` impl → GREEN.
 
 ## Performance gotchas
 
@@ -89,7 +89,7 @@ Concrete pattern from this codebase: see `tests/test_glossary.py` (RED for missi
 
 - `pytest -m fast` runs in ~1 second with no GPU and no model download. Always run this first.
 - `pytest -m breeze_invariant` is also fast and has no model dependency.
-- Don't try to invoke `qwen3_asr.py` or `breeze_asr.py` end-to-end without GPU + ~5GB model cache.
+- Don't try to invoke `src/taiwan_asr/qwen3.py` or `src/taiwan_asr/breeze.py` end-to-end without GPU + ~5GB model cache.
 
 ## Commit conventions
 

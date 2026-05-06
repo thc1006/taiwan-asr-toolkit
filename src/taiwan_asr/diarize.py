@@ -14,7 +14,7 @@
 """
 from __future__ import annotations
 
-from _asr_common import init_env
+from taiwan_asr.common import init_env
 _NCPU = init_env()
 
 import os, sys, gc, time, json, argparse, warnings
@@ -30,7 +30,7 @@ for _logger_name in ("pyannote", "pytorch_lightning", "speechbrain"):
     except Exception:
         pass
 
-from _asr_common import Segment, save_outputs, AudioIO
+from taiwan_asr.common import Segment, save_outputs, AudioIO
 
 
 # ============================================================

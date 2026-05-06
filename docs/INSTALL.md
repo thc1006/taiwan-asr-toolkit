@@ -59,10 +59,10 @@ pip install -e ".[all]"
 
 | Trigger | Model | Size | License |
 |---|---|---|---|
-| `python qwen3_asr.py …` | Qwen/Qwen3-ASR-1.7B + ForcedAligner-0.6B | ~5 GB | Apache-2.0 |
-| `python breeze_asr.py …` | MediaTek-Research/Breeze-ASR-25 + CT2 conversion | ~3 GB → ~2 GB | Apache-2.0 |
-| `python polish.py …` | Qwen/Qwen3-8B (or Qwen2.5-7B fallback) | ~14 GB | Apache-2.0 |
-| `python diarize.py …` | tensorlake/speaker-diarization-3.1 (community mirror) | ~600 MB | requires HF license accept |
+| `asr-qwen3 …` | Qwen/Qwen3-ASR-1.7B + ForcedAligner-0.6B | ~5 GB | Apache-2.0 |
+| `asr-breeze …` | MediaTek-Research/Breeze-ASR-25 + CT2 conversion | ~3 GB → ~2 GB | Apache-2.0 |
+| `asr-polish …` | Qwen/Qwen3-8B (or Qwen2.5-7B fallback) | ~14 GB | Apache-2.0 |
+| `asr-diarize …` | tensorlake/speaker-diarization-3.1 (community mirror) | ~600 MB | requires HF license accept |
 
 ## HuggingFace setup
 
@@ -103,8 +103,8 @@ brew install ffmpeg         # macOS
 
 ```bash
 pytest -m fast              # 47 tests, ~1 second
-python qwen3_asr.py --help
-python breeze_asr.py --help
+asr-qwen3 --help
+asr-breeze --help
 ```
 
 If `pytest -m fast` is all green, the toolkit is correctly installed.

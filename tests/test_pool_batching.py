@@ -16,7 +16,7 @@ import pytest
 @pytest.mark.fast
 def test_qwen3_has_transcribe_files_method():
     """Qwen3ASR 必須有 transcribe_files 方法支援多檔 pool。"""
-    from qwen3_asr import Qwen3ASR
+    from taiwan_asr.qwen3 import Qwen3ASR
     assert hasattr(Qwen3ASR, "transcribe_files"), (
         "Qwen3ASR 缺少 transcribe_files(paths, language) 方法"
     )
@@ -25,7 +25,7 @@ def test_qwen3_has_transcribe_files_method():
 @pytest.mark.fast
 def test_transcribe_files_signature():
     """簽名:transcribe_files(self, paths, language=...)"""
-    from qwen3_asr import Qwen3ASR
+    from taiwan_asr.qwen3 import Qwen3ASR
     sig = inspect.signature(Qwen3ASR.transcribe_files)
     params = list(sig.parameters.keys())
     assert "paths" in params
@@ -35,7 +35,7 @@ def test_transcribe_files_signature():
 @pytest.mark.fast
 def test_no_pool_cli_flag_exists():
     """qwen3_asr.py 必須有 --no-pool 旗標。"""
-    src = Path(__file__).parent.parent / "qwen3_asr.py"
+    src = Path(__file__).parent.parent / "src/taiwan_asr/qwen3.py"
     code = src.read_text(encoding="utf-8")
     assert '--no-pool' in code, "缺少 --no-pool CLI 旗標"
 
@@ -43,7 +43,7 @@ def test_no_pool_cli_flag_exists():
 @pytest.mark.fast
 def test_pool_returns_dict_keyed_by_path(monkeypatch):
     """transcribe_files 回傳值必須是 {path: [Segment]} 結構。"""
-    from qwen3_asr import Qwen3ASR, HwConfig
+    from taiwan_asr.qwen3 import Qwen3ASR, HwConfig
     import sys, numpy as np
 
     # 用 monkeypatch 攔截真實模型,只測試 pool 邏輯
@@ -66,7 +66,7 @@ def test_pool_returns_dict_keyed_by_path(monkeypatch):
     monkeypatch.setitem(sys.modules, "qwen_asr", fake_module)
 
     # Stub VAD: 給每檔回傳兩段
-    from _asr_common import SileroVAD
+    from taiwan_asr.common import SileroVAD
     def fake_chunks(self, audio):
         return [
             {"audio": (np.zeros(8000, dtype=np.float32), 16000), "start": 0.0, "end": 0.5},
@@ -75,7 +75,7 @@ def test_pool_returns_dict_keyed_by_path(monkeypatch):
     monkeypatch.setattr(SileroVAD, "speech_chunks", fake_chunks)
 
     # Stub AudioIO.decode_to_array
-    from _asr_common import AudioIO
+    from taiwan_asr.common import AudioIO
     monkeypatch.setattr(
         AudioIO, "decode_to_array",
         staticmethod(lambda src, sr=16000: (np.zeros(int(2*16000), dtype=np.float32), 2.0)),

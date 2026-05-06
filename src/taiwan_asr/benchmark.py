@@ -264,7 +264,7 @@ def main():
         gt_path, gt_clip_end = _find_gt(stem)
         if gt_path and gt_path.is_file():
             try:
-                from cer_eval import (
+                from taiwan_asr.cer_eval import (
                     compute_cer as _ccer, hyp_text_from_path, read_text_file, normalize as _norm,
                 )
                 ref_text = read_text_file(str(gt_path))

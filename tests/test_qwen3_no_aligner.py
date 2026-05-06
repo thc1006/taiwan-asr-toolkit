@@ -17,7 +17,7 @@ import pytest
 @pytest.mark.fast
 def test_qwen3asr_has_aligner_enabled_param():
     """Qwen3ASR.__init__ 必須有 aligner_enabled 參數。"""
-    from qwen3_asr import Qwen3ASR
+    from taiwan_asr.qwen3 import Qwen3ASR
     sig = inspect.signature(Qwen3ASR.__init__)
     assert "aligner_enabled" in sig.parameters, (
         "Qwen3ASR.__init__ 缺 aligner_enabled 參數"
@@ -27,7 +27,7 @@ def test_qwen3asr_has_aligner_enabled_param():
 @pytest.mark.fast
 def test_qwen3asr_aligner_default_is_true():
     """aligner_enabled 預設必須是 True (向後相容,準度為先)。"""
-    from qwen3_asr import Qwen3ASR
+    from taiwan_asr.qwen3 import Qwen3ASR
     sig = inspect.signature(Qwen3ASR.__init__)
     p = sig.parameters["aligner_enabled"]
     assert p.default is True, f"預設應為 True (準度為先),實際: {p.default}"
@@ -36,7 +36,7 @@ def test_qwen3asr_aligner_default_is_true():
 @pytest.mark.fast
 def test_no_aligner_cli_flag_exists():
     """qwen3_asr.py 主程式必須有 --no-aligner 旗標。"""
-    src = Path(__file__).parent.parent / "qwen3_asr.py"
+    src = Path(__file__).parent.parent / "src/taiwan_asr/qwen3.py"
     code = src.read_text(encoding="utf-8")
     # 需要在 argparse 中註冊
     assert '--no-aligner' in code, "缺少 --no-aligner CLI 旗標"
@@ -45,7 +45,7 @@ def test_no_aligner_cli_flag_exists():
 @pytest.mark.fast
 def test_qwen3_load_skips_aligner_kwargs_when_disabled(monkeypatch):
     """關閉 aligner 時, from_pretrained 不可帶 forced_aligner/_kwargs。"""
-    from qwen3_asr import Qwen3ASR, HwConfig
+    from taiwan_asr.qwen3 import Qwen3ASR, HwConfig
 
     captured_kwargs = {}
 
@@ -79,7 +79,7 @@ def test_qwen3_load_skips_aligner_kwargs_when_disabled(monkeypatch):
 @pytest.mark.fast
 def test_qwen3_load_includes_aligner_when_enabled(monkeypatch):
     """預設 (aligner=True) 必須傳 forced_aligner。"""
-    from qwen3_asr import Qwen3ASR, HwConfig
+    from taiwan_asr.qwen3 import Qwen3ASR, HwConfig
 
     captured_kwargs = {}
 

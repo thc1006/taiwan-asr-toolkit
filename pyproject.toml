@@ -78,24 +78,19 @@ Benchmarks = "https://github.com/thc1006/taiwan-asr-toolkit/blob/main/docs/BENCH
 
 # CLI 入口 (pip install -e . 後可用)
 [project.scripts]
-asr-qwen3 = "qwen3_asr:main"
-asr-breeze = "breeze_asr:main"
-asr-polish = "polish:main"
-asr-diarize = "diarize:main"
-asr-bench = "benchmark:main"
-asr-cer = "cer_eval:main"
+asr-qwen3   = "taiwan_asr.qwen3:main"
+asr-breeze  = "taiwan_asr.breeze:main"
+asr-polish  = "taiwan_asr.polish:main"
+asr-diarize = "taiwan_asr.diarize:main"
+asr-bench   = "taiwan_asr.benchmark:main"
+asr-cer     = "taiwan_asr.cer_eval:main"
 
-# 把 root 的 .py 檔當成模組 (flat layout)
-[tool.setuptools]
-py-modules = [
-    "_asr_common",
-    "qwen3_asr",
-    "breeze_asr",
-    "polish",
-    "diarize",
-    "cer_eval",
-    "benchmark",
-]
+# src/ layout 套件設定
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+taiwan_asr = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

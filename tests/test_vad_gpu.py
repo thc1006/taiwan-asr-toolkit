@@ -17,7 +17,7 @@ import pytest
 @pytest.mark.fast
 def test_silero_vad_accepts_device_param():
     """SileroVAD 必須有 device 建構參數。"""
-    from _asr_common import SileroVAD
+    from taiwan_asr.common import SileroVAD
     sig = inspect.signature(SileroVAD.__init__)
     assert "device" in sig.parameters, "SileroVAD 必須有 device 參數 (cpu/cuda:0/auto)"
 
@@ -28,7 +28,7 @@ def test_silero_vad_accepts_device_param():
 @pytest.mark.medium
 def test_silero_vad_auto_picks_cpu_for_small_model():
     """device='auto' 應選 cpu (ONNX SIMD 對 Silero 這種小模型最快)。"""
-    from _asr_common import SileroVAD
+    from taiwan_asr.common import SileroVAD
     vad = SileroVAD(device="auto")
     audio = np.zeros(int(0.5 * 16000), dtype=np.float32)
     vad.speech_chunks(audio)
@@ -44,7 +44,7 @@ def test_gpu_vad_matches_cpu_vad(clip_30s, cuda_available):
     """GPU/CPU VAD 對同一音訊產生段數一致、邊界誤差 <50ms。"""
     if not cuda_available:
         pytest.skip("cuda 不可用")
-    from _asr_common import SileroVAD, AudioIO
+    from taiwan_asr.common import SileroVAD, AudioIO
     audio, _ = AudioIO.decode_to_array(str(clip_30s))
 
     cpu = SileroVAD(device="cpu")
@@ -74,7 +74,7 @@ def test_vad_speed_informational(music_886, cuda_available):
     """測量 CPU 與 GPU VAD 速度供記錄,不下結論。"""
     if not cuda_available:
         pytest.skip("cuda 不可用,僅 GPU 路徑被 skip")
-    from _asr_common import SileroVAD, AudioIO
+    from taiwan_asr.common import SileroVAD, AudioIO
     audio, _ = AudioIO.decode_to_array(str(music_886))
 
     # 預熱
@@ -96,7 +96,7 @@ def test_vad_speed_informational(music_886, cuda_available):
 # ─────────────────────────────────────────────────────────────
 @pytest.mark.fast
 def test_silero_vad_default_still_works():
-    from _asr_common import SileroVAD
+    from taiwan_asr.common import SileroVAD
     audio = np.zeros(int(0.5 * 16000), dtype=np.float32)
     vad = SileroVAD()  # 不傳 device
     chunks = vad.speech_chunks(audio)

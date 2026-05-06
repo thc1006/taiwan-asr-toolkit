@@ -16,7 +16,7 @@ Qwen3-ASR-1.7B 極致優化版 v2 — RTX 5090 (Blackwell sm_120)
 from __future__ import annotations
 
 # ── (一) 必須最早:在 import torch / numpy 之前設好環境變數 ──
-from _asr_common import init_env
+from taiwan_asr.common import init_env
 _NCPU = init_env()
 
 import os, sys, gc, time, argparse, warnings
@@ -30,7 +30,7 @@ logging.getLogger("transformers").setLevel(logging.ERROR)
 
 import numpy as np
 import torch
-from _asr_common import (
+from taiwan_asr.common import (
     init_torch, Segment, save_outputs, S2TW,
     AudioIO, SileroVAD, length_sorted_batches, Stopwatch,
 )

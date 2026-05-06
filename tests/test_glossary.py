@@ -14,13 +14,13 @@ import pytest
 
 @pytest.mark.fast
 def test_load_glossary_function_exists():
-    from _asr_common import load_glossary  # 紅燈
+    from taiwan_asr.common import load_glossary  # 紅燈
     assert callable(load_glossary)
 
 
 @pytest.mark.fast
 def test_load_glossary_skips_comments_and_blanks(tmp_path):
-    from _asr_common import load_glossary
+    from taiwan_asr.common import load_glossary
     p = tmp_path / "g.txt"
     p.write_text(textwrap.dedent("""
         # 這行是註解
@@ -36,7 +36,7 @@ def test_load_glossary_skips_comments_and_blanks(tmp_path):
 
 @pytest.mark.fast
 def test_load_glossary_default_file_has_ntu_terms(project_root):
-    from _asr_common import load_glossary
+    from taiwan_asr.common import load_glossary
     g_path = project_root / "glossary.txt"
     if not g_path.is_file():
         pytest.skip("glossary.txt 不存在")
@@ -49,7 +49,7 @@ def test_load_glossary_default_file_has_ntu_terms(project_root):
 
 @pytest.mark.fast
 def test_load_glossary_handles_missing_file():
-    from _asr_common import load_glossary
+    from taiwan_asr.common import load_glossary
     out = load_glossary("/path/does/not/exist.txt")
     # 不應 crash,應返回空 list
     assert out == []
@@ -57,7 +57,7 @@ def test_load_glossary_handles_missing_file():
 
 @pytest.mark.fast
 def test_load_glossary_dedupe_preserves_order():
-    from _asr_common import load_glossary
+    from taiwan_asr.common import load_glossary
     import tempfile, os
     fd, p = tempfile.mkstemp(suffix=".txt")
     os.close(fd)

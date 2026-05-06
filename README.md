@@ -43,7 +43,7 @@ pip install --index-url https://download.pytorch.org/whl/cu128 torch torchaudio
 pip install -e ".[all]"
 
 # 2. Transcribe (auto-detects RTX 5090, picks best params)
-python breeze_asr.py path/to/your_audio.mp3 --glossary-file glossary.txt
+asr-breeze path/to/your_audio.mp3 --glossary-file glossary.txt
 
 # 3. Output is in ./transcripts/breeze/{filename}_breeze.{txt,srt,json}
 ```
@@ -113,10 +113,10 @@ Want to verify? `pytest tests/test_glossary_effect.py -v` — locks in the `圓�
 
 ```bash
 # Breeze (Whisper-Large-v2 fine-tune, fastest)
-python breeze_asr.py "music/lecture.mp3" --glossary-file glossary.txt
+asr-breeze "music/lecture.mp3" --glossary-file glossary.txt
 
 # Qwen3-ASR (more comprehensive coverage)
-python qwen3_asr.py "music/interview.m4a"
+asr-qwen3 "music/interview.m4a"
 
 # Both at once (same audio, two transcripts to compare)
 ./run.sh both "music/standard_recording.mp3"
@@ -126,10 +126,10 @@ python qwen3_asr.py "music/interview.m4a"
 
 ```bash
 # Transcribes everything in music/ via Qwen3 with pool batching
-python qwen3_asr.py music/*.mp3 music/*.m4a
+asr-qwen3 music/*.mp3 music/*.m4a
 
 # Same with Breeze (now also gets cross-file batched if multiple files)
-python breeze_asr.py music/*.{mp3,m4a,wav} --glossary-file glossary.txt
+asr-breeze music/*.{mp3,m4a,wav} --glossary-file glossary.txt
 ```
 
 ### Power-user flags
@@ -148,7 +148,7 @@ python breeze_asr.py music/*.{mp3,m4a,wav} --glossary-file glossary.txt
 
 ```bash
 # Polish a Breeze output with Qwen3-8B + glossary protection
-python polish.py transcripts/breeze/lecture_breeze.json --glossary-file glossary.txt
+asr-polish transcripts/breeze/lecture_breeze.json --glossary-file glossary.txt
 # → transcripts/breeze-polished/lecture_breeze-polished.{txt,srt,json}
 ```
 
@@ -156,7 +156,7 @@ python polish.py transcripts/breeze/lecture_breeze.json --glossary-file glossary
 
 ```bash
 # Adds [SPEAKER_00] / [SPEAKER_01] labels to each segment
-python diarize.py transcripts/breeze/interview_breeze.json music/interview.m4a
+asr-diarize transcripts/breeze/interview_breeze.json music/interview.m4a
 # Requires HF license accept on:
 # - https://hf.co/pyannote/speaker-diarization-3.1
 # - https://hf.co/pyannote/speaker-diarization-community-1
@@ -167,7 +167,7 @@ python diarize.py transcripts/breeze/interview_breeze.json music/interview.m4a
 
 ```bash
 # Generates docs/BENCHMARK.md with speed + quality metrics
-python benchmark.py --gt-dir tests/fixtures
+asr-bench --gt-dir tests/fixtures
 ```
 
 ---
@@ -190,7 +190,7 @@ Silero VAD ONNX (CPU SIMD, ~3-5x faster than PyTorch backend)
             TXT          SRT          JSON
 
    ┌──── Optional post-processing ────┐
-   │ polish.py   diarize.py   benchmark.py │
+   │ asr-polish  asr-diarize  asr-bench  │
    │ Qwen3-8B    pyannote     CER + RTF     │
    └──────────────────────────────────┘
 ```
@@ -203,20 +203,24 @@ Full architectural details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
 ```
 taiwan-asr-toolkit/
-├── _asr_common.py     ← shared utils: ffmpeg pipe, OpenCC, Silero VAD, glossary, Segment
-├── qwen3_asr.py       ← Qwen3-ASR + multi-file chunk pool
-├── breeze_asr.py      ← Breeze-ASR-25 with manual VAD + hot-word injection
-├── polish.py          ← Qwen3-8B LLM context correction (glossary-protected)
-├── diarize.py         ← pyannote.audio speaker diarization
-├── cer_eval.py        ← jiwer-based CER with s2twp normalization
-├── benchmark.py       ← speed + accuracy report
+├── src/taiwan_asr/
+│   ├── __init__.py    ← package; minimal export to avoid heavy import cascades
+│   ├── common.py      ← shared utils: ffmpeg pipe, OpenCC, Silero VAD, glossary, Segment
+│   ├── qwen3.py       ← Qwen3-ASR + multi-file chunk pool
+│   ├── breeze.py      ← Breeze-ASR-25 with manual VAD + hot-word injection
+│   ├── polish.py      ← Qwen3-8B LLM context correction (glossary-protected)
+│   ├── diarize.py     ← pyannote.audio speaker diarization
+│   ├── cer_eval.py    ← jiwer-based CER with s2twp normalization
+│   └── benchmark.py   ← speed + accuracy report
 ├── glossary.txt       ← default NTU glossary (dorm/dept names)
-├── run.sh             ← convenience wrapper
-├── pyproject.toml     ← project metadata, deps, CLI scripts
+├── run.sh             ← convenience wrapper around asr-* CLI commands
+├── pyproject.toml     ← project metadata, deps, CLI scripts (asr-qwen3, asr-breeze, …)
 ├── tests/             ← 56 TDD tests (including 5 Breeze invariants)
 ├── docs/              ← BENCHMARK.md / ARCHITECTURE.md / INSTALL.md
-└── archive/           ← legacy Colab notebooks (do not edit)
+└── archive/           ← legacy Colab notebooks (kept for reference only)
 ```
+
+After `pip install -e .` the following CLI commands are on PATH: `asr-qwen3`, `asr-breeze`, `asr-polish`, `asr-diarize`, `asr-bench`, `asr-cer`.
 
 ---
 

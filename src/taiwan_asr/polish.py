@@ -21,7 +21,7 @@ LLM 上下文修正 — 用 Qwen3 LLM 把 ASR 結果做語境級錯字校正 + �
 """
 from __future__ import annotations
 
-from _asr_common import init_env
+from taiwan_asr.common import init_env
 _NCPU = init_env()
 
 import os, sys, gc, time, json, re, argparse, warnings
@@ -34,7 +34,7 @@ import logging
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
 import torch
-from _asr_common import init_torch, Segment, save_outputs, S2TW, Stopwatch
+from taiwan_asr.common import init_torch, Segment, save_outputs, S2TW, Stopwatch
 init_torch(_NCPU)
 
 

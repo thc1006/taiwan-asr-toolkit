@@ -39,7 +39,7 @@ input audio ──▶ │ ffmpeg pipe → numpy float32 16k mono   │ (AudioIO.
        Optional post-processing
            ─────────────────────
    ┌────────────────────┐    ┌────────────────────┐    ┌────────────────────┐
-   │ polish.py          │    │ diarize.py         │    │ benchmark.py       │
+   │ asr-polish         │    │ asr-diarize        │    │ asr-bench          │
    │ Qwen3-8B context   │    │ pyannote 3.x       │    │ CER vs ground truth│
    │ correction         │    │ → speaker_id       │    │ + cross-model agree│
    │ (glossary-aware)   │    │                    │    │                    │
@@ -50,13 +50,13 @@ input audio ──▶ │ ffmpeg pipe → numpy float32 16k mono   │ (AudioIO.
 
 | Module | Purpose |
 |---|---|
-| `_asr_common.py` | Env init, ffmpeg pipe IO, OpenCC s2twp, Silero VAD, length-sorted batching, Stopwatch, glossary loader, `Segment` dataclass |
-| `qwen3_asr.py`   | Qwen3-ASR-1.7B + ForcedAligner-0.6B; multi-file chunk pool; `--no-aligner` |
-| `breeze_asr.py` | Breeze-ASR-25 (Whisper-Large-v2 FT); manual VAD + clip_timestamps; `--glossary-file` for hot-word injection; `--fast` for int8 quant |
-| `polish.py`      | Qwen3-8B LLM context-correction with NTU glossary protection (won't touch proper nouns) |
-| `diarize.py`     | pyannote.audio speaker diarization; assigns `speaker_id` to each ASR segment by max time-overlap |
-| `cer_eval.py`    | Character Error Rate / WER, using jiwer + s2twp normalization for fair simplified-vs-traditional comparison |
-| `benchmark.py`   | Full speed + accuracy report (RTF, coverage, hallucination signals, cross-model agreement, optional CER) |
+| `src/taiwan_asr/common.py` | Env init, ffmpeg pipe IO, OpenCC s2twp, Silero VAD, length-sorted batching, Stopwatch, glossary loader, `Segment` dataclass |
+| `src/taiwan_asr/qwen3.py`   | Qwen3-ASR-1.7B + ForcedAligner-0.6B; multi-file chunk pool; `--no-aligner` |
+| `src/taiwan_asr/breeze.py` | Breeze-ASR-25 (Whisper-Large-v2 FT); manual VAD + clip_timestamps; `--glossary-file` for hot-word injection; `--fast` for int8 quant |
+| `src/taiwan_asr/polish.py`      | Qwen3-8B LLM context-correction with NTU glossary protection (won't touch proper nouns) |
+| `src/taiwan_asr/diarize.py`     | pyannote.audio speaker diarization; assigns `speaker_id` to each ASR segment by max time-overlap |
+| `src/taiwan_asr/cer_eval.py`    | Character Error Rate / WER, using jiwer + s2twp normalization for fair simplified-vs-traditional comparison |
+| `src/taiwan_asr/benchmark.py`   | Full speed + accuracy report (RTF, coverage, hallucination signals, cross-model agreement, optional CER) |
 
 ## Why these design choices
 

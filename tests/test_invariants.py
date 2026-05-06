@@ -19,7 +19,7 @@ import pytest
 @pytest.mark.breeze_invariant
 def test_breeze_model_id_is_mediatek():
     """Breeze 必須使用 MediaTek-Research/Breeze-ASR-25,絕不可換。"""
-    from breeze_asr import FasterWhisperBackend, TransformersBackend
+    from taiwan_asr.breeze import FasterWhisperBackend, TransformersBackend
     assert FasterWhisperBackend.MODEL_ID == "MediaTek-Research/Breeze-ASR-25"
     assert TransformersBackend.MODEL_ID == "MediaTek-Research/Breeze-ASR-25"
     # 雙重保險:檢查關鍵字
@@ -31,7 +31,7 @@ def test_breeze_model_id_is_mediatek():
 @pytest.mark.breeze_invariant
 def test_breeze_no_whisper_turbo_substitution():
     """確認沒有偷偷換成 Whisper-Large-v3 / Distil-Whisper / Turbo 變體。"""
-    src = Path(__file__).parent.parent / "breeze_asr.py"
+    src = Path(__file__).parent.parent / "src/taiwan_asr/breeze.py"
     content = src.read_text(encoding="utf-8")
     # 這些字串如果出現在 MODEL_ID 周圍就是換模型
     forbidden_in_model = [
@@ -43,7 +43,7 @@ def test_breeze_no_whisper_turbo_substitution():
         # 簡單啟發:行內若同時有 'MODEL_ID' 和 forbidden,就 fail
         for line in content.splitlines():
             if "MODEL_ID" in line and "=" in line and f in line.lower():
-                pytest.fail(f"breeze_asr.py 模型 ID 含禁用詞: {f}\n  → {line!r}")
+                pytest.fail(f"src/taiwan_asr/breeze.py 模型 ID 含禁用詞: {f}\n  → {line!r}")
 
 
 @pytest.mark.medium
@@ -80,7 +80,7 @@ def test_breeze_ct2_cache_is_mediatek():
 @pytest.mark.fast
 @pytest.mark.breeze_invariant
 def test_opencc_uses_s2twp():
-    from _asr_common import S2TW
+    from taiwan_asr.common import S2TW
     s = S2TW(True)
     assert s.cc is not None, "OpenCC 未載入"
     # 我們嘗試順序:s2twp 優先
@@ -90,7 +90,7 @@ def test_opencc_uses_s2twp():
 @pytest.mark.fast
 def test_s2tw_actually_converts_simplified():
     """簡體必須真的被轉成繁體 (台灣慣用詞)。"""
-    from _asr_common import S2TW
+    from taiwan_asr.common import S2TW
     s = S2TW(True)
     out = s("我们正在测试软件优化方案")
     assert "軟體" in out or "软件" not in out, f"s2tw 沒轉:{out!r}"
@@ -102,7 +102,7 @@ def test_s2tw_actually_converts_simplified():
 # ─────────────────────────────────────────────────────────────
 @pytest.mark.fast
 def test_qwen3_lang_map_zh_to_chinese():
-    from qwen3_asr import Qwen3ASR
+    from taiwan_asr.qwen3 import Qwen3ASR
     assert Qwen3ASR.normalize_lang("zh") == "Chinese"
     assert Qwen3ASR.normalize_lang("zh-TW") == "Chinese"
     assert Qwen3ASR.normalize_lang("zh-tw") == "Chinese"
@@ -114,7 +114,7 @@ def test_qwen3_lang_map_zh_to_chinese():
 @pytest.mark.fast
 def test_qwen3_model_ids():
     """Qwen3-ASR + ForcedAligner 模型 ID 不可動。"""
-    from qwen3_asr import Qwen3ASR
+    from taiwan_asr.qwen3 import Qwen3ASR
     assert Qwen3ASR.MODEL == "Qwen/Qwen3-ASR-1.7B"
     assert Qwen3ASR.ALIGNER == "Qwen/Qwen3-ForcedAligner-0.6B"
 
@@ -125,7 +125,7 @@ def test_qwen3_model_ids():
 @pytest.mark.fast
 def test_breeze_decoding_defaults_safe_for_chinese():
     """讀 breeze_asr.py 原始碼,確認關鍵中文解碼參數在預設路徑。"""
-    src = Path(__file__).parent.parent / "breeze_asr.py"
+    src = Path(__file__).parent.parent / "src/taiwan_asr/breeze.py"
     code = src.read_text(encoding="utf-8")
     # 必須有的關鍵防護
     must_have = [

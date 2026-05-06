@@ -1,4 +1,4 @@
-# 保護詞彙清單 — polish.py 用 (--glossary-file glossary.txt)
+# 保護詞彙清單 — asr-polish / asr-breeze 用 (--glossary-file glossary.txt)
 # 這些詞 LLM 絕不可改寫,即使聽起來像錯字
 # 一行一個,# 開頭視為註解
 

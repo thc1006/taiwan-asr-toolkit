@@ -1,39 +1,50 @@
 #!/usr/bin/env bash
-# 統一執行入口 — 優先使用 uv (若安裝),否則 fallback 到 python3
+# Convenience wrapper around the asr-* CLI commands installed by `pip install -e .`.
+# Falls back to `python -m taiwan_asr.X` if the CLI scripts are not on PATH.
 set -euo pipefail
 cd "$(dirname "$0")"
 
-if command -v uv >/dev/null 2>&1; then
-  PY="uv run --no-project --script python3"
+# Pick a runner: prefer the installed CLI; otherwise use the package directly.
+if command -v asr-breeze >/dev/null 2>&1; then
+  BREEZE=asr-breeze
+  QWEN3=asr-qwen3
+  BENCH=asr-bench
 else
-  PY="python3"
+  echo "(asr-* commands not found on PATH; using 'python -m taiwan_asr.X')" >&2
+  BREEZE="python -m taiwan_asr.breeze"
+  QWEN3="python -m taiwan_asr.qwen3"
+  BENCH="python -m taiwan_asr.benchmark"
 fi
 
 usage() {
   cat <<EOF
-用法:
-  ./run.sh qwen3 <音訊檔...>      Qwen3-ASR 轉錄
-  ./run.sh breeze <音訊檔...>     Breeze-ASR 轉錄
-  ./run.sh both <音訊檔...>       兩個都跑 (模型分開載入)
-  ./run.sh report                 產生比對報告 (transcripts/REPORT.md)
-  ./run.sh all                    跑 music/ 內所有音檔 + 產報告
+Usage:
+  ./run.sh qwen3 <audio...>     Run Qwen3-ASR transcription
+  ./run.sh breeze <audio...>    Run Breeze-ASR-25 transcription
+  ./run.sh both <audio...>      Run both models on the same input
+  ./run.sh report               Generate docs/BENCHMARK.md from existing outputs
+  ./run.sh all                  Transcribe everything in music/ with both models + report
+
+For full flag documentation see:
+  asr-breeze --help
+  asr-qwen3 --help
 EOF
 }
 
 case "${1:-}" in
-  qwen3)  shift; $PY qwen3_asr.py "$@" ;;
-  breeze) shift; $PY breeze_asr.py "$@" ;;
+  qwen3)  shift; $QWEN3 "$@" ;;
+  breeze) shift; $BREEZE "$@" ;;
   both)
     shift
-    $PY breeze_asr.py "$@"
-    $PY qwen3_asr.py "$@"
+    $BREEZE "$@"
+    $QWEN3 "$@"
     ;;
-  report) $PY benchmark.py ;;
+  report) $BENCH ;;
   all)
     files=( music/* )
-    $PY breeze_asr.py "${files[@]}"
-    $PY qwen3_asr.py  "${files[@]}"
-    $PY benchmark.py
+    $BREEZE "${files[@]}"
+    $QWEN3  "${files[@]}"
+    $BENCH
     ;;
   *) usage; exit 1 ;;
 esac

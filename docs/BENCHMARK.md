@@ -84,18 +84,18 @@ v5 用 TDD 嚴格紅燈→綠燈 加三條軸線:
 
 ### B. 講者分離 (pyannote.audio)
 
-新增 `diarize.py`、`Segment.speaker_id` 欄、`assign_speakers()` 對齊器。
+新增 `src/taiwan_asr/diarize.py`、`Segment.speaker_id` 欄、`assign_speakers()` 對齊器。
 **框架完整,但 pyannote 模型受 HuggingFace gated license 保護**,需使用者一次性手動步驟:
 1. 造訪 https://hf.co/pyannote/speaker-diarization-3.1 點 Agree
 2. 造訪 https://hf.co/pyannote/speaker-diarization-community-1 點 Agree
 3. 造訪 https://hf.co/pyannote/segmentation-3.0 點 Agree
-4. 重跑 `python3 diarize.py <asr.json> <audio>`
+4. 重跑 `asr-diarize <asr.json> <audio>`
 
 完成後輸出將自動帶 `[SPEAKER_00]` 標籤。
 
 ### C. 真 CER (Character Error Rate) 評估
 
-新增 `cer_eval.py` (jiwer + s2twp 中文正規化) + `benchmark.py --gt-dir` 整合。
+新增 `src/taiwan_asr/cer_eval.py` (jiwer + s2twp 中文正規化) + `asr-bench --gt-dir` 整合。
 ground-truth fixture: `tests/fixtures/標準錄音 886_first_55s_gt.txt`
 
 | 模型 | CER on 0-55s | 解讀 |
@@ -121,10 +121,10 @@ ground-truth fixture: `tests/fixtures/標準錄音 886_first_55s_gt.txt`
 
 | 工具 | 旗標 | 作用 |
 |---|---|---|
-| breeze_asr | `--glossary-file PATH` | 餵 prompt + hotwords;預設 glossary.txt |
-| diarize.py | `<asr.json> <audio>` | 跑 pyannote 加 speaker_id |
-| cer_eval.py | `--ref GT --hyp ASR --clip-end SEC` | 算 CER |
-| benchmark.py | `--gt-dir DIR` | 自動找 GT 算 CER |
+| asr-breeze | `--glossary-file PATH` | 餵 prompt + hotwords;預設 glossary.txt |
+| asr-diarize | `<asr.json> <audio>` | 跑 pyannote 加 speaker_id |
+| asr-cer | `--ref GT --hyp ASR --clip-end SEC` | 算 CER |
+| asr-bench | `--gt-dir DIR` | 自動找 GT 算 CER |
 
 ### 不可動搖的契約 (5 個 Breeze 守門測試)
 

@@ -50,7 +50,7 @@ Don't weaken these in defaults. New flags can opt-in to alternatives.
 
 Concrete example: see how `load_glossary` was added.
 [`tests/test_glossary.py`](tests/test_glossary.py) was written first (RED),
-then `_asr_common.py::load_glossary` (GREEN).
+then `taiwan_asr.common.load_glossary` (GREEN).
 
 ## Setup for development
 
@@ -122,7 +122,7 @@ Use the bug report template. Critical info:
 If you're contributing speed optimizations, include before/after numbers:
 
 ```
-$ python benchmark.py --timing /tmp/timing.tsv
+$ asr-bench --timing /tmp/timing.tsv
 ```
 
 Performance claims must include the test set used. The reference test set is

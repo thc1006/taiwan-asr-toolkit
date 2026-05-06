@@ -24,7 +24,7 @@ Breeze-ASR-25 (台灣華語) 極致優化版 v2 — RTX 5090 (Blackwell sm_120)
 from __future__ import annotations
 
 # (一) 必須最早!
-from _asr_common import init_env
+from taiwan_asr.common import init_env
 _NCPU = init_env()
 
 import os, sys, gc, time, argparse, warnings, subprocess
@@ -40,7 +40,7 @@ logging.getLogger("faster_whisper").setLevel(logging.WARNING)
 import numpy as np
 import soundfile as sf
 import torch
-from _asr_common import (
+from taiwan_asr.common import (
     init_torch, Segment, save_outputs, S2TW, AudioIO, SileroVAD, Stopwatch,
     load_glossary,
 )

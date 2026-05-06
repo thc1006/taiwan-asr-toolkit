@@ -8,23 +8,23 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and
 Initial public release. Combines five iterations of internal optimization (v1–v5).
 
 ### Added — three independent feature axes
-- **A. Hot-word injection at ASR source** (`breeze_asr.py --glossary-file`)
-  - `load_glossary()` in `_asr_common.py`
+- **A. Hot-word injection at ASR source** (`asr-breeze --glossary-file`)
+  - `load_glossary()` in `src/taiwan_asr/common.py`
   - Glossary terms feed Whisper's `initial_prompt` + faster-whisper `hotwords`
   - Demonstrably fixes `圓三 → 研三` (NTU graduate dorm) and `祝福二族 → 住輔二組` on real audio
-- **B. Speaker diarization** (`diarize.py`)
+- **B. Speaker diarization** (`src/taiwan_asr/diarize.py`)
   - pyannote.audio 4.x integration with `tensorlake/speaker-diarization-3.1` open mirror
   - `Segment.speaker_id` field added (backward-compatible default `None`)
   - `assign_speakers()` aligns ASR segments with diarization turns by max time-overlap
-- **C. Real CER measurement** (`cer_eval.py`)
+- **C. Real CER measurement** (`src/taiwan_asr/cer_eval.py`)
   - jiwer-based CER + WER with NFKC + punctuation removal + s2twp normalization
-  - `benchmark.py --gt-dir` integrates ground-truth comparison
+  - `asr-bench --gt-dir` integrates ground-truth comparison
   - Default ground-truth fixture for 標準錄音 886 first 55s
 
 ### Added — performance and quality
 - Multi-file chunk pool batching for Qwen3 (`transcribe_files`, default-on for multi-file)
 - `--no-aligner` flag for Qwen3 (~25% speedup, loses word-level timestamps)
-- LLM context polish (`polish.py`) using Qwen3-8B with NTU glossary protection
+- LLM context polish (`src/taiwan_asr/polish.py`) using Qwen3-8B with NTU glossary protection
 - Length-sorted batching across files
 - Manual ONNX Silero VAD on Breeze side via `clip_timestamps` (replaces faster-whisper internal VAD)
 - Breeze + Qwen3 symmetric pipeline (same VAD, same dtype, same batch policy) for fair comparison

@@ -15,13 +15,13 @@ This toolkit is for users who: (1) want Traditional Chinese (Taiwan) output, not
 
 ## Source modules (flat layout, all importable)
 
-- [_asr_common.py](_asr_common.py): Shared utilities — `init_env`, `init_torch`, `AudioIO.decode_to_array` (ffmpeg pipe → numpy float32 16k), `S2TW` (OpenCC s2twp), `SileroVAD` (ONNX backend, `device='auto'` picks CPU because the model is too small for GPU to win), `length_sorted_batches`, `load_glossary`, `Segment` dataclass with `speaker_id` field, `Stopwatch`
-- [qwen3_asr.py](qwen3_asr.py): `Qwen3ASR` class wrapping Qwen3-ASR-1.7B + ForcedAligner-0.6B. Critical: `language` parameter must be the full English name `"Chinese"` not `"zh"` (qwen-asr 0.0.6 quirk; `Qwen3ASR.LANG_MAP` handles this). Includes `transcribe_files(paths)` for cross-file chunk pool batching.
-- [breeze_asr.py](breeze_asr.py): `FasterWhisperBackend` (default, CTranslate2 bf16) and `TransformersBackend` (fallback, HF eager). Manual ONNX VAD via `clip_timestamps` (BatchedInferencePipeline expects list-of-dict format, not flat list — gotcha fixed in code). Glossary → `initial_prompt + hotwords`.
-- [polish.py](polish.py): `Qwen3Polisher` LLM context-correction. Loads Qwen3-8B (or Qwen2.5-7B fallback). Built-in NTU glossary protects proper nouns from being "fixed" (e.g., 研三舍 must NOT become 延長).
-- [diarize.py](diarize.py): pyannote.audio 4.x wrapper. `assign_speakers(asr_segs, diar_segs)` aligns by max time-overlap. Default model is `tensorlake/speaker-diarization-3.1` (open mirror, no gated license).
-- [cer_eval.py](cer_eval.py): `compute_cer(ref, hyp)` and `compute_metrics(ref, hyp)` — jiwer with NFKC + punctuation removal + s2twp normalization so 简 vs 繁 doesn't count as CER.
-- [benchmark.py](benchmark.py): Cross-model comparison. RTF + coverage % + hallucination signals (>60s segment count) + cross-model Jaccard + optional CER vs ground truth.
+- [taiwan_asr/common.py](src/taiwan_asr/common.py): Shared utilities — `init_env`, `init_torch`, `AudioIO.decode_to_array` (ffmpeg pipe → numpy float32 16k), `S2TW` (OpenCC s2twp), `SileroVAD` (ONNX backend, `device='auto'` picks CPU because the model is too small for GPU to win), `length_sorted_batches`, `load_glossary`, `Segment` dataclass with `speaker_id` field, `Stopwatch`
+- [taiwan_asr/qwen3.py](src/taiwan_asr/qwen3.py): `Qwen3ASR` class wrapping Qwen3-ASR-1.7B + ForcedAligner-0.6B. Critical: `language` parameter must be the full English name `"Chinese"` not `"zh"` (qwen-asr 0.0.6 quirk; `Qwen3ASR.LANG_MAP` handles this). Includes `transcribe_files(paths)` for cross-file chunk pool batching.
+- [taiwan_asr/breeze.py](src/taiwan_asr/breeze.py): `FasterWhisperBackend` (default, CTranslate2 bf16) and `TransformersBackend` (fallback, HF eager). Manual ONNX VAD via `clip_timestamps` (BatchedInferencePipeline expects list-of-dict format, not flat list — gotcha fixed in code). Glossary → `initial_prompt + hotwords`.
+- [taiwan_asr/polish.py](src/taiwan_asr/polish.py): `Qwen3Polisher` LLM context-correction. Loads Qwen3-8B (or Qwen2.5-7B fallback). Built-in NTU glossary protects proper nouns from being "fixed" (e.g., 研三舍 must NOT become 延長).
+- [taiwan_asr/diarize.py](src/taiwan_asr/diarize.py): pyannote.audio 4.x wrapper. `assign_speakers(asr_segs, diar_segs)` aligns by max time-overlap. Default model is `tensorlake/speaker-diarization-3.1` (open mirror, no gated license).
+- [taiwan_asr/cer_eval.py](src/taiwan_asr/cer_eval.py): `compute_cer(ref, hyp)` and `compute_metrics(ref, hyp)` — jiwer with NFKC + punctuation removal + s2twp normalization so 简 vs 繁 doesn't count as CER.
+- [taiwan_asr/benchmark.py](src/taiwan_asr/benchmark.py): Cross-model comparison. RTF + coverage % + hallucination signals (>60s segment count) + cross-model Jaccard + optional CER vs ground truth.
 
 ## Tests (56 total, all green)
 
@@ -38,6 +38,6 @@ This toolkit is for users who: (1) want Traditional Chinese (Taiwan) output, not
 
 ## Optional
 
-- [glossary.txt](glossary.txt): Default NTU glossary — dorm names (研三舍, 延三舍, 男一~男八, 女一~女九), departments (住輔組, 課指組), schools (台大/臺大/NTU). Used by `breeze_asr --glossary-file` and `polish.py --glossary-file`.
+- [glossary.txt](glossary.txt): Default NTU glossary — dorm names (研三舍, 延三舍, 男一~男八, 女一~女九), departments (住輔組, 課指組), schools (台大/臺大/NTU). Used by `breeze_asr --glossary-file` and `asr-polish --glossary-file`.
 - [archive/](archive/): Original Colab notebook scripts before the toolkit existed. Do not edit, just reference.
 - [run.sh](run.sh): Convenience wrapper. `./run.sh both music/*.mp3` runs both models; `./run.sh report` regenerates BENCHMARK.md.
