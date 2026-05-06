@@ -1,0 +1,43 @@
+# Taiwan ASR Toolkit
+
+> Production-grade Traditional Chinese (Taiwan Mandarin) speech-to-text toolkit. Two SOTA Mandarin ASR models (Qwen3-ASR-1.7B + MediaTek Breeze-ASR-25) with identical pipelines for fair comparison, hot-word injection at the source, OpenCC s2twp Traditional-Chinese-Taiwan conversion, optional Qwen3-8B LLM polish, optional pyannote speaker diarization. Tuned for RTX 5090 / Blackwell sm_120 with RTF up to 1554× on long sparse audio.
+
+This toolkit is for users who: (1) want Traditional Chinese (Taiwan) output, not Simplified, (2) need to transcribe Mandarin audio with proper nouns Whisper doesn't know (e.g., NTU dorm names), (3) want speed AND accuracy, not a tradeoff, (4) value reproducibility (56 TDD tests including 5 invariants that lock `MediaTek-Research/Breeze-ASR-25` as the Breeze model).
+
+## Documentation
+
+- [README](README.md): Hero, quick start, benchmarks (RTF 382× combined, 1554× single file), feature comparison vs whisperX/faster-whisper/openai-whisper
+- [INSTALL.md](docs/INSTALL.md): Step-by-step install for RTX 5090 + cu128, uv recommended, HF token setup, pyannote license accept
+- [BENCHMARK.md](docs/BENCHMARK.md): Full results across 11 audio files (712 min total), v2 → v3 → v4 → v5 evolution, real CER measurement
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md): Pipeline diagram, design rationale (why same VAD on both sides, why hot-word at source, etc.)
+- [CONTRIBUTING.md](CONTRIBUTING.md): TDD workflow, commit conventions, the 5 Breeze invariant tests
+- [CHANGELOG.md](CHANGELOG.md): v0.1 → v0.5 history
+
+## Source modules (flat layout, all importable)
+
+- [_asr_common.py](_asr_common.py): Shared utilities — `init_env`, `init_torch`, `AudioIO.decode_to_array` (ffmpeg pipe → numpy float32 16k), `S2TW` (OpenCC s2twp), `SileroVAD` (ONNX backend, `device='auto'` picks CPU because the model is too small for GPU to win), `length_sorted_batches`, `load_glossary`, `Segment` dataclass with `speaker_id` field, `Stopwatch`
+- [qwen3_asr.py](qwen3_asr.py): `Qwen3ASR` class wrapping Qwen3-ASR-1.7B + ForcedAligner-0.6B. Critical: `language` parameter must be the full English name `"Chinese"` not `"zh"` (qwen-asr 0.0.6 quirk; `Qwen3ASR.LANG_MAP` handles this). Includes `transcribe_files(paths)` for cross-file chunk pool batching.
+- [breeze_asr.py](breeze_asr.py): `FasterWhisperBackend` (default, CTranslate2 bf16) and `TransformersBackend` (fallback, HF eager). Manual ONNX VAD via `clip_timestamps` (BatchedInferencePipeline expects list-of-dict format, not flat list — gotcha fixed in code). Glossary → `initial_prompt + hotwords`.
+- [polish.py](polish.py): `Qwen3Polisher` LLM context-correction. Loads Qwen3-8B (or Qwen2.5-7B fallback). Built-in NTU glossary protects proper nouns from being "fixed" (e.g., 研三舍 must NOT become 延長).
+- [diarize.py](diarize.py): pyannote.audio 4.x wrapper. `assign_speakers(asr_segs, diar_segs)` aligns by max time-overlap. Default model is `tensorlake/speaker-diarization-3.1` (open mirror, no gated license).
+- [cer_eval.py](cer_eval.py): `compute_cer(ref, hyp)` and `compute_metrics(ref, hyp)` — jiwer with NFKC + punctuation removal + s2twp normalization so 简 vs 繁 doesn't count as CER.
+- [benchmark.py](benchmark.py): Cross-model comparison. RTF + coverage % + hallucination signals (>60s segment count) + cross-model Jaccard + optional CER vs ground truth.
+
+## Tests (56 total, all green)
+
+- [tests/test_invariants.py](tests/test_invariants.py): 9 tests, 5 marked `@breeze_invariant` — these MUST stay green; they lock `MediaTek-Research/Breeze-ASR-25` as Breeze model id, OpenCC scheme `s2twp`, qwen-asr language map `zh → Chinese`
+- [tests/test_v3_regression.py](tests/test_v3_regression.py): 8 tests; baseline behavior locks for 標準錄音 886
+- [tests/test_vad_gpu.py](tests/test_vad_gpu.py): 5 tests; informational measurement showed CPU ONNX 615ms vs GPU PyTorch 1163ms on a 4-min file — Silero is too small for GPU acceleration to win
+- [tests/test_qwen3_no_aligner.py](tests/test_qwen3_no_aligner.py): 5 tests for `--no-aligner` flag
+- [tests/test_pool_batching.py](tests/test_pool_batching.py): 4 tests for `transcribe_files` cross-file pooling
+- [tests/test_glossary.py](tests/test_glossary.py): 5 tests for `load_glossary`
+- [tests/test_breeze_glossary.py](tests/test_breeze_glossary.py): 5 tests for hot-word injection wiring
+- [tests/test_glossary_effect.py](tests/test_glossary_effect.py): 2 tests; locks the `圓三 → 研三` improvement on 886 (will fail if you re-run breeze without `--glossary-file`)
+- [tests/test_cer_eval.py](tests/test_cer_eval.py): 7 tests; covers s2twp normalization, empty-ref edge case
+- [tests/test_diarize.py](tests/test_diarize.py): 6 tests; `assign_speakers` by max time-overlap, graceful fail on missing pyannote license
+
+## Optional
+
+- [glossary.txt](glossary.txt): Default NTU glossary — dorm names (研三舍, 延三舍, 男一~男八, 女一~女九), departments (住輔組, 課指組), schools (台大/臺大/NTU). Used by `breeze_asr --glossary-file` and `polish.py --glossary-file`.
+- [archive/](archive/): Original Colab notebook scripts before the toolkit existed. Do not edit, just reference.
+- [run.sh](run.sh): Convenience wrapper. `./run.sh both music/*.mp3` runs both models; `./run.sh report` regenerates BENCHMARK.md.

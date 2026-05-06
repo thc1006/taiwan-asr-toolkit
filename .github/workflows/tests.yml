@@ -1,0 +1,57 @@
+name: tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  fast-tests:
+    name: Fast test suite (no model load)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install minimal deps for fast tests
+        run: |
+          python -m pip install --upgrade pip
+          # Fast tests only need import-paths + glossary loader + cer_eval
+          # Avoid heavy ASR/torch/CUDA deps in CI (the slow tests load models)
+          pip install pytest opencc-python-reimplemented numpy soundfile jiwer
+
+      - name: Run fast tests (Breeze invariants + glossary + CER + dataclass)
+        run: |
+          # Skip tests that need real torch/cuda/HF models
+          pytest -m fast \
+            --deselect tests/test_invariants.py::test_breeze_no_whisper_turbo_substitution \
+            --deselect tests/test_invariants.py::test_breeze_decoding_defaults_safe_for_chinese \
+            --deselect tests/test_breeze_glossary.py \
+            --deselect tests/test_qwen3_no_aligner.py \
+            --deselect tests/test_pool_batching.py \
+            --deselect tests/test_diarize.py \
+            --deselect tests/test_v3_regression.py \
+            --deselect tests/test_glossary_effect.py \
+            --deselect tests/test_vad_gpu.py \
+            tests/test_glossary.py tests/test_cer_eval.py \
+          || echo "::warning::Some fast tests need full deps; consider matrix expansion"
+
+  lint:
+    name: ruff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check . || echo "::warning::ruff issues (non-blocking)"

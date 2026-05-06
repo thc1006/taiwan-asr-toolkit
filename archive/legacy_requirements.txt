@@ -1,0 +1,34 @@
+# RTX 5090 (Blackwell sm_120) + Python 3.13 + CUDA 12.8
+# 推薦安裝命令: uv pip install -r requirements.txt
+# (注意 PyTorch 必須從官方 cu128 wheel 安裝)
+#
+# 若沒裝 uv:    curl -LsSf https://astral.sh/uv/install.sh | sh
+# 安裝 PyTorch: uv pip install --index-url https://download.pytorch.org/whl/cu128 torch torchaudio
+#
+# ── 核心 ──
+torch>=2.9.1
+torchaudio>=2.9.1
+transformers>=4.46.0
+accelerate>=1.0.0
+safetensors
+
+# ── ASR 模型套件 ──
+qwen-asr>=0.0.6
+faster-whisper>=1.2.1
+ctranslate2>=4.7.0
+
+# ── 音訊 / 切片 ──
+silero-vad>=5.1
+librosa>=0.10.0
+soundfile>=0.13.0
+pydub
+
+# ── 後處理 ──
+opencc-python-reimplemented>=0.1.7
+
+# ── 可選加速 (sm_120 wheel 不一定齊全;失敗可略) ──
+# flash-attn>=2.7.4   # Blackwell 需從原始碼編譯,優先用 PyTorch SDPA
+# xformers>=0.0.29
+
+# ── LLM polish (--polish 旗標需要) ──
+# transformers 已涵蓋

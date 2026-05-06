@@ -1,0 +1,119 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "taiwan-asr-toolkit"
+version = "0.5.0"
+description = "Production-grade Traditional Chinese / Taiwan Mandarin ASR toolkit — Qwen3-ASR + Breeze-ASR-25, LLM polish, speaker diarization, RTX 5090 / Blackwell tuned, RTF up to 1500x."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+keywords = [
+    "asr", "speech-recognition", "chinese", "traditional-chinese",
+    "taiwanese-mandarin", "繁體中文", "qwen3", "qwen3-asr", "breeze-asr",
+    "mediatek", "whisper", "faster-whisper", "ctranslate2",
+    "speaker-diarization", "pyannote", "silero-vad",
+    "opencc", "transcription", "subtitle", "srt",
+    "rtx-5090", "blackwell", "cuda", "tdd",
+]
+authors = [
+    { name = "Taiwan ASR Toolkit Contributors" },
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Natural Language :: Chinese (Traditional)",
+    "Operating System :: POSIX :: Linux",
+]
+
+# 核心相依 (兩個 ASR 後端共用)
+dependencies = [
+    "torch>=2.7",
+    "torchaudio>=2.7",
+    "transformers>=4.46",
+    "accelerate>=1.0",
+    "qwen-asr>=0.0.6",
+    "faster-whisper>=1.2",
+    "ctranslate2>=4.6",
+    "silero-vad>=5.1",
+    "soundfile>=0.13",
+    "librosa>=0.10",
+    "numpy>=1.26",
+    "opencc-python-reimplemented>=0.1.7",
+    "pydub",
+]
+
+[project.optional-dependencies]
+# CER 評估
+eval = ["jiwer>=3"]
+# LLM polish (吃額外 ~14GB Qwen2.5/Qwen3-8B 模型)
+polish = []
+# 講者分離 (吃 pyannote 模型,需 HF license accept)
+diarize = ["pyannote.audio>=3.3"]
+# 開發者工具
+dev = ["pytest>=8", "pytest-cov", "ruff", "mypy"]
+# 全部
+all = [
+    "jiwer>=3",
+    "pyannote.audio>=3.3",
+    "pytest>=8", "pytest-cov", "ruff", "mypy",
+]
+
+[project.urls]
+Homepage = "https://github.com/your-org/taiwan-asr-toolkit"
+Documentation = "https://github.com/your-org/taiwan-asr-toolkit/blob/main/docs/"
+Repository = "https://github.com/your-org/taiwan-asr-toolkit.git"
+Issues = "https://github.com/your-org/taiwan-asr-toolkit/issues"
+Benchmarks = "https://github.com/your-org/taiwan-asr-toolkit/blob/main/docs/BENCHMARK.md"
+
+# CLI 入口 (pip install -e . 後可用)
+[project.scripts]
+asr-qwen3 = "qwen3_asr:main"
+asr-breeze = "breeze_asr:main"
+asr-polish = "polish:main"
+asr-diarize = "diarize:main"
+asr-bench = "benchmark:main"
+asr-cer = "cer_eval:main"
+
+# 把 root 的 .py 檔當成模組 (flat layout)
+[tool.setuptools]
+py-modules = [
+    "_asr_common",
+    "qwen3_asr",
+    "breeze_asr",
+    "polish",
+    "diarize",
+    "cer_eval",
+    "benchmark",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short --strict-markers -p no:warnings"
+markers = [
+    "fast: 不載入模型,純檔/字串檢查 (秒級)",
+    "medium: 只載入 VAD,~5s 內可跑完",
+    "slow: 載入 ASR 模型 (Qwen3 / Breeze),分鐘級",
+    "breeze_invariant: Breeze 台灣繁中專攻保護測試 (絕不可失敗)",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP"]
+ignore = ["E501"]  # line length 由 formatter 處理

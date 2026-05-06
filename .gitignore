@@ -1,0 +1,97 @@
+# ── 大檔 / 可重現產物 ──
+# (注意:.gitignore 不支援 inline 註解,模式必須單獨一行)
+
+# 使用者音檔 (~670MB),不入版控
+music/
+
+# ASR 輸出 (可重新跑出來)
+transcripts/
+
+# legacy 輸出目錄
+outputs/
+
+# 暫存音訊
+*.wav
+
+# 測試用小檔 (~1MB) 例外保留
+!tests/fixtures/*.wav
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ── 測試 / lint 快取 ──
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.cache
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.ruff_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# ── 虛擬環境 ──
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ── 編輯器 ──
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── HuggingFace / 模型快取 (絕對路徑可能洩漏) ──
+.cache/
+*.bin
+*.safetensors
+*.gguf
+*.onnx
+
+# ── Notebook 副產物 ──
+.ipynb_checkpoints/
+
+# ── 個人筆記 ──
+TODO.md
+NOTES.md
+*.local.md
+
+# ── CI 大量輸出 ──
+*.log
+benchmark-*.json
