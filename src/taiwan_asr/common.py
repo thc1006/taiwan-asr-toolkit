@@ -352,10 +352,37 @@ class SileroVAD:
 # ------------------------------------------------------------------
 # 5b) Glossary 載入 — 給 ASR initial_prompt / hotwords 用
 # ------------------------------------------------------------------
+def builtin_glossary_path() -> Path:
+    """Return the path to the packaged default NTU glossary that ships with the wheel.
+
+    Resolution order:
+      1. importlib.resources (works for installed wheels and editable installs)
+      2. fallback: relative to this file (works in clone without install)
+    """
+    try:
+        # importlib.resources >=3.9 returns a Traversable; .as_posix() works for filesystem
+        from importlib.resources import files
+        ref = files("taiwan_asr.data") / "ntu_glossary.txt"
+        # Materialize to a real path (importlib.resources may return zip-internal traversable)
+        if hasattr(ref, "is_file") and ref.is_file():
+            return Path(str(ref))
+    except Exception:
+        pass
+    return Path(__file__).parent / "data" / "ntu_glossary.txt"
+
+
 def load_glossary(path: str) -> List[str]:
     """讀 glossary 文字檔。每行一個詞,跳過 # 註解與空行,維持出現順序去重。
+
+    Magic value:
+      path == "builtin" (case-insensitive) -> use the packaged default NTU glossary
+      that ships with the wheel (research dorms / departments / school names).
+
     檔案不存在則返回 []。"""
-    p = Path(path)
+    if path and str(path).lower() == "builtin":
+        p = builtin_glossary_path()
+    else:
+        p = Path(path)
     if not p.is_file():
         return []
     seen = set()

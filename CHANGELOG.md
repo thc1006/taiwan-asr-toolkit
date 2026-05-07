@@ -3,6 +3,30 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.3] – 2026-05-07
+
+### Added
+- The default NTU glossary now ships **inside the wheel** as
+  `src/taiwan_asr/data/ntu_glossary.txt`. PyPI users (`pip install
+  taiwan-asr-toolkit`) no longer need to download `glossary.txt` from
+  GitHub separately to get hot-word injection.
+- New magic value: `--glossary-file builtin` — resolves to the packaged
+  default glossary regardless of CWD. Works for both pip-installed and
+  cloned setups.
+- New helper `taiwan_asr.common.builtin_glossary_path()` (also reachable
+  via `from taiwan_asr.common import builtin_glossary_path`).
+- 4 new tests in `tests/test_builtin_glossary.py` (test count 65 -> 69):
+  resolution, builtin keyword load, case-insensitivity, and a sync guard
+  that flags drift between root `glossary.txt` and the packaged copy.
+- `[tool.setuptools.package-data]` now includes `data/*.txt`.
+
+### Compat
+- Root `glossary.txt` is kept for the existing clone-and-edit workflow.
+  A test enforces it stays byte-identical to the packaged copy. Maintainer
+  edits go in `src/taiwan_asr/data/ntu_glossary.txt`, then `cp` to root.
+- Existing `--glossary-file glossary.txt` invocations from cloned repos
+  continue to work unchanged.
+
 ## [0.5.2] – 2026-05-07
 
 Quality / compatibility / docs polish patch in response to a self-review of
