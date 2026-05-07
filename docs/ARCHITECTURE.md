@@ -98,12 +98,12 @@ This is why Breeze ends up faster than Qwen3 in v3+ benchmarks despite Qwen3 bei
 ## Test architecture (TDD)
 
 ```
-56 tests · 4 priority tiers
+109 tests · 4 priority tiers
 ─────────────────────────────
 @breeze_invariant    (5) ← never-fail; protects MediaTek-Research/Breeze-ASR-25 model id
-@fast               (47) ← no model load, ~1s
-@medium              (4) ← VAD only, ~5s
-@slow                (0) ← model-loading e2e (intentionally not in default suite)
+@fast              (104) ← no model load, ~9s (includes the 5 invariants)
+@medium              (4) ← VAD only
+@slow                (1) ← model-loading e2e (intentionally not in default suite)
 ```
 
 Run subsets:

@@ -2,7 +2,7 @@
 
 > Production-grade Traditional Chinese (Taiwan Mandarin) speech-to-text toolkit. Two SOTA Mandarin ASR models (Qwen3-ASR-1.7B + MediaTek Breeze-ASR-25) with identical pipelines for fair comparison, hot-word injection at the source, OpenCC s2twp Traditional-Chinese-Taiwan conversion, optional Qwen3-8B LLM polish, optional pyannote speaker diarization. Tuned for RTX 5090 / Blackwell sm_120 with RTF up to 1554x on long sparse audio.
 
-This toolkit is for users who: (1) want Traditional Chinese (Taiwan) output, not Simplified, (2) need to transcribe Mandarin audio with proper nouns Whisper doesn't know (e.g., NTU dorm names), (3) want speed AND accuracy, not a tradeoff, (4) value reproducibility (56 TDD tests including 5 invariants that lock `MediaTek-Research/Breeze-ASR-25` as the Breeze model).
+This toolkit is for users who: (1) want Traditional Chinese (Taiwan) output, not Simplified, (2) need to transcribe Mandarin audio with proper nouns Whisper doesn't know (e.g., NTU dorm names), (3) want speed AND accuracy, not a tradeoff, (4) value reproducibility (109 TDD tests including 5 invariants that lock `MediaTek-Research/Breeze-ASR-25` as the Breeze model).
 
 ## Documentation
 

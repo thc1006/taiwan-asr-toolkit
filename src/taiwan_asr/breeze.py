@@ -152,28 +152,47 @@ class FasterWhisperBackend:
         hot = " ".join(terms)
         return prompt, hot
 
+    # Files we want CT2 to copy alongside the converted weights so faster-whisper
+    # can locate the tokenizer + preprocessor at load time. Some entries (notably
+    # added_tokens.json) are optional in newer Whisper variants — if MediaTek
+    # drops one in a future Breeze checkpoint, the converter fails. We retry
+    # once with the minimal subset that faster-whisper actually needs.
+    _CT2_COPY_FILES_FULL = [
+        "tokenizer.json", "preprocessor_config.json",
+        "generation_config.json", "tokenizer_config.json",
+        "vocab.json", "merges.txt", "normalizer.json",
+        "special_tokens_map.json", "added_tokens.json",
+    ]
+    _CT2_COPY_FILES_MIN = ["tokenizer.json", "preprocessor_config.json"]
+
     def _ensure_ct2(self):
         marker = os.path.join(self.ct2_dir, "model.bin")
         if os.path.isfile(marker):
             return
         print(f" 首次使用,將 Breeze-ASR-25 轉 CTranslate2 (基底 bfloat16,可 load 時降級)…")
         os.makedirs(self.ct2_dir, exist_ok=True)
-        cmd = [
+        base_cmd = [
             "ct2-transformers-converter",
             "--model", self.MODEL_ID,
             "--output_dir", self.ct2_dir,
-            "--quantization", "bfloat16",   # 基底用 bf16,load 時可動態降到 int8_bf16
-            "--copy_files",
-            "tokenizer.json", "preprocessor_config.json",
-            "generation_config.json", "tokenizer_config.json",
-            "vocab.json", "merges.txt", "normalizer.json",
-            "special_tokens_map.json", "added_tokens.json",
-            "--force",
+            "--quantization", "bfloat16",
         ]
-        try:
-            subprocess.run(cmd, check=True)
-        except subprocess.CalledProcessError as e:
-            raise RuntimeError(f"CT2 轉換失敗,請改用 --backend transformers: {e}")
+        for attempt, copy_list in enumerate(
+            (self._CT2_COPY_FILES_FULL, self._CT2_COPY_FILES_MIN), start=1
+        ):
+            cmd = base_cmd + ["--copy_files", *copy_list, "--force"]
+            try:
+                subprocess.run(cmd, check=True)
+                return
+            except subprocess.CalledProcessError as e:
+                if attempt == 2:
+                    raise RuntimeError(
+                        f"CT2 轉換失敗,請改用 --backend transformers: {e}"
+                    )
+                print(
+                    f" CT2 轉換首次失敗 ({type(e).__name__}),"
+                    f"用最小 --copy_files 重試 (tokenizer.json + preprocessor_config.json)…"
+                )
 
     def load(self) -> "FasterWhisperBackend":
         from faster_whisper import WhisperModel, BatchedInferencePipeline
@@ -250,17 +269,27 @@ class FasterWhisperBackend:
                   f"batch={self.cfg.batch_size} | beam={self.beam}")
             common["vad_filter"] = False
             if n_chunks == 0:
-                common["clip_timestamps"] = "0"
+                # Pre-v0.5.5 set clip_timestamps="0" here, but BatchedInferencePipeline
+                # iterates the str char-by-char and crashes on .items(). Mirror qwen3
+                # behaviour: nothing to transcribe, return [] cleanly.
+                print(" (VAD 偵測到 0 段語音 → 略過 ASR,輸出空逐字稿)")
+                sw.lap("ASR (skipped, no speech)")
+                return [], sw
             elif self.batched is not None:
-                # BatchedInferencePipeline 吃 list-of-dict
+                # BatchedInferencePipeline 吃 list-of-dict.
+                # Length-sort ascending to reduce cuDNN kernel-cache thrash on
+                # very uneven chunks (mirrors qwen3 length-sorted batching).
+                # Output segments get re-sorted by .start before returning.
+                ordered = sorted(chunks, key=lambda c: c["end"] - c["start"])
                 common["clip_timestamps"] = [
                     {"start": float(c["start"]), "end": float(c["end"])}
-                    for c in chunks
+                    for c in ordered
                 ]
             else:
-                # 非 batched 吃 flat list of floats
+                # 非 batched 吃 flat list of floats — same length-sort principle.
+                ordered = sorted(chunks, key=lambda c: c["end"] - c["start"])
                 flat: List[float] = []
-                for c in chunks:
+                for c in ordered:
                     flat.extend([float(c["start"]), float(c["end"])])
                 common["clip_timestamps"] = flat
         else:
@@ -275,12 +304,26 @@ class FasterWhisperBackend:
                   f"batch={self.cfg.batch_size} | beam={self.beam}")
 
         t0 = time.time()
-        if self.batched is not None:
-            it, info = self.batched.transcribe(
-                audio, batch_size=self.cfg.batch_size, **common
-            )
-        else:
-            it, info = self.model.transcribe(audio, **common)
+        # OOM retry: faster-whisper batches internally with batch_size; if the
+        # backend OOMs, halve and retry the same audio. cur_bs stays local —
+        # do NOT write back to self.cfg.batch_size or it leaks into the next
+        # file in a multi-file run (qwen3 had that bug, fixed in v0.5.5 H3).
+        cur_bs = self.cfg.batch_size
+        while True:
+            try:
+                if self.batched is not None:
+                    it, info = self.batched.transcribe(
+                        audio, batch_size=cur_bs, **common
+                    )
+                else:
+                    it, info = self.model.transcribe(audio, **common)
+                break
+            except torch.cuda.OutOfMemoryError:
+                torch.cuda.empty_cache(); gc.collect()
+                if cur_bs <= 1:
+                    raise
+                cur_bs = max(1, cur_bs // 2)
+                print(f"\n  OOM,Breeze 降批 → {cur_bs} 重試…")
 
         out: List[Segment] = []
         last_print = t0
@@ -311,6 +354,9 @@ class FasterWhisperBackend:
                       end="", flush=True)
                 last_print = now
         print()
+        # Length-sort fed clip_timestamps in non-time order to reduce cuDNN
+        # cache thrash; restore time order before returning.
+        out.sort(key=lambda s: s.start)
         sw.lap("ASR (faster-whisper + s2twp)")
         print(f" Breeze 完成 | 段 {len(out)} | 耗 {time.time()-t0:.1f}s | "
               f"音訊 {dur:.1f}s | RTF={dur/max(time.time()-t0,1e-3):.1f}x | "

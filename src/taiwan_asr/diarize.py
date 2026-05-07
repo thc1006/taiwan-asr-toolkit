@@ -33,6 +33,22 @@ for _logger_name in ("pyannote", "pytorch_lightning", "speechbrain"):
 from taiwan_asr.common import Segment, save_outputs, AudioIO
 
 
+def _format_gated_error_message(model_id: str) -> str:
+    """Format the HuggingFace gated-model help text. Pre-v0.5.5 the message
+    hardcoded pyannote/speaker-diarization-3.1 even when the live model_id
+    was a different mirror (e.g. tensorlake/speaker-diarization-3.1). Users
+    would 'Agree' on the wrong repo and the error would persist. The text
+    now uses the model_id the caller actually passed in."""
+    return (
+        " ↪ 此模型受 license 保護,請執行下列步驟 (一次性):\n"
+        " 1. 開啟瀏覽器登入 HuggingFace 帳號\n"
+        f" 2. 造訪 https://hf.co/{model_id} 點 'Agree and access repository'\n"
+        " 3. 同樣造訪 https://hf.co/pyannote/segmentation-3.0\n"
+        " 4. 確認 https://hf.co/settings/tokens 的 token 有 'Read' 權限\n"
+        " 5. 重跑此命令 (HF_TOKEN 已自動讀 ~/.cache/huggingface/token)"
+    )
+
+
 # ============================================================
 # 1) Diarization 主管線 — 跑 pyannote pipeline 取得 (start, end, speaker)
 # ============================================================
@@ -78,13 +94,7 @@ def run_pyannote(audio_array, sr: int = 16000,
         is_gated = "gated" in msg.lower() or "Gated" in msg or "403" in msg
         print(f" pyannote 模型載入失敗 ({type(last_err).__name__})", file=sys.stderr)
         if is_gated:
-            print(" ↪ 此模型受 license 保護,請執行下列步驟 (一次性):", file=sys.stderr)
-            print(" 1. 開啟瀏覽器登入 HuggingFace 帳號", file=sys.stderr)
-            print(f" 2. 造訪 https://hf.co/{model_id} 點 'Agree and access repository'", file=sys.stderr)
-            print(f" 3. 同樣造訪 https://hf.co/pyannote/speaker-diarization-community-1", file=sys.stderr)
-            print(f" 4. 同樣造訪 https://hf.co/pyannote/segmentation-3.0", file=sys.stderr)
-            print(" 5. 確認 https://hf.co/settings/tokens 的 token 有 'Read' 權限", file=sys.stderr)
-            print(f" 6. 重跑此命令 (HF_TOKEN 已自動讀 ~/.cache/huggingface/token)", file=sys.stderr)
+            print(_format_gated_error_message(model_id), file=sys.stderr)
         else:
             print(f" 錯誤:{msg[:200]}", file=sys.stderr)
         return []

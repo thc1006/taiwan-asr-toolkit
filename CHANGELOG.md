@@ -3,6 +3,98 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.5] – 2026-05-07
+
+Comprehensive correctness + asymmetry pass following a deep audit of the v0.5.4
+codebase. 20 issues fixed across 5 phases under TDD; test count grew 72 → 109
+(+37 regression tests). No API breakage.
+
+### Fixed (showstoppers)
+- **`asr-breeze` no longer crashes on silent / sub-threshold audio.** When VAD
+  returned 0 segments, the empty-VAD guard at `breeze.py:252` set
+  `clip_timestamps="0"` (a string), which `BatchedInferencePipeline` then
+  iterated char-by-char and called `.items()` on, raising
+  `AttributeError: 'str' object has no attribute 'items'`. Now mirrors qwen3:
+  early-return `([], Stopwatch)` with a friendly print. Locked by
+  `tests/test_breeze_vad_empty.py` (3 tests).
+- **`asr-polish --glossary-file builtin` now actually loads the packaged
+  glossary.** Pre-v0.5.5, polish.py reimplemented its own glossary loader and
+  silently fell through (`Path("builtin").is_file() == False`), giving users
+  only the polish.py-internal hardcoded subset. Now uses
+  `taiwan_asr.common.load_glossary()`, the same code path as breeze and qwen3.
+  Resolves M4 (the inconsistent `# comment` lstrip too). 6 new tests.
+- **sdist now ships `tests/conftest.py`.** Pre-v0.5.5 setuptools auto-discovered
+  `test_*.py` files but not `conftest.py` or `tests/__init__.py`, so a
+  downstream developer running `pytest tests/` from a fresh sdist install hit
+  ~15 `fixture-not-found` ERRORs. New `MANIFEST.in` includes the test suite +
+  doc files; wheel is unaffected. 2 new tests.
+
+### Fixed (correctness / asymmetry)
+- **`asr-breeze` now retries on `torch.cuda.OutOfMemoryError`.** Mirrors qwen3:
+  halve `batch_size` and re-attempt, propagate only when batch=1 also OOMs.
+  3 new tests.
+- **qwen3 OOM retry no longer mutates `self.cfg.batch_size`.** Pre-v0.5.5,
+  after a single-file or pool OOM at batch=48, `self.cfg.batch_size` was
+  written down to e.g. 24 — and every subsequent file in the same multi-file
+  run inherited the reduced batch even when it would have fit at 48. `cur_bs`
+  is now strictly local. 2 new tests.
+- **qwen3 pool batching now isolates per-file decode failures.** A corrupt mp4
+  in a 10-file pool no longer aborts the whole run; the bad file is logged and
+  skipped, the rest proceed. 2 new tests.
+- **Breeze CT2 conversion now retries with a minimal `--copy_files` list** if
+  the full list fails (defensive against future Breeze checkpoints that drop
+  optional files like `added_tokens.json`). 3 new tests.
+- **Polish CLI now passes the right `pad_token_id` to HF generate.** Prefer
+  `tokenizer.pad_token_id` when present (Qwen2.5/3 tokenizers have a distinct
+  pad token), fall back to `eos_token_id` only when truly absent. Critical for
+  any future batched-generation extension. 4 new tests.
+
+### Fixed (privacy hygiene)
+- **Local-only privacy scrub.** Removed all `transcripts/breeze*/標準錄音 886*`,
+  `transcripts/qwen3/標準錄音 886*`, and `transcripts/breeze-polished/4月22日 *`
+  files from the dev tree (they were `.gitignore`'d so never on remote, but
+  identifiable content sitting on disk is a CI-log leak risk).
+- **Test assertion messages no longer print `full[:200]` of fixture content.**
+  `tests/test_invariants.py:160-163` and `tests/test_glossary_effect.py:18`
+  now report aggregate stats (char counts, segment counts) only.
+- Removed the close-quoted homophone pair `祝福二族 → 二組` from
+  `docs/BENCHMARK.md`, `CHANGELOG.md`, `README.md`. Generic homophone
+  description preserved.
+
+### Fixed (asymmetry)
+- **Breeze now length-sorts VAD chunks** before passing to
+  `BatchedInferencePipeline` (mirrors qwen3 length-sorted batching). Reduces
+  cuDNN kernel-cache thrash from `cudnn.benchmark=True`. Output is re-sorted
+  by start time before returning, so caller-visible behaviour is unchanged.
+  2 new tests.
+- **`asr-polish --no-s2tw` flag added** (matching breeze and qwen3).
+  `Qwen3Polisher.__init__` now accepts `s2tw_enabled`. 3 new tests.
+- **Notebook shell-escape hardened.** `examples/quickstart.ipynb` cells 4 + 8
+  now route `audio_path` through `os.environ["TAIWAN_ASR_INPUT"]` instead of
+  IPython f-string interpolation. Defends against filenames containing `"`,
+  `$`, or backtick. 2 new tests.
+
+### Documentation
+- **README cross-file pool batching claim corrected.** It only ever applied to
+  qwen3; Breeze processes files sequentially because faster-whisper batches
+  internally per call.
+- **Test count claim now CI-guarded.** New `tests/test_doc_count_sync.py`
+  reads `pytest --collect-only` and asserts every `N tests` claim across
+  README, CHANGELOG, llms.txt, ARCHITECTURE.md, PROMOTION.md, and the notebook
+  matches the live count. Catches future drift automatically.
+
+### Polish (low priority)
+- `Stopwatch.lap()` warns on duplicate label (was silently shadowed by
+  `.get(prefix)`'s first-match return).
+- `_PUNCT_RE` in `cer_eval.py` now strips `⋯` (U+22EF) and `‧` (U+2027).
+  CER between transcripts that differ only in ellipsis style is now 0.
+- `qwen3.transcribe_files` normalizes input paths via `os.path.normpath` so
+  `./a.mp3` and `a.mp3` collapse to one result-dict key.
+- `cer_eval` now documents that the redundant `wer` key equals `cer`
+  (Mandarin has no word segmentation; `wer` alone would be meaningless).
+- `diarize` gated-license error message now references the actual `model_id`
+  the caller passed, not a hard-coded `pyannote/...` path.
+
 ## [0.5.4] – 2026-05-07
 
 ### Fixed
@@ -144,7 +236,8 @@ Initial public release. Combines five iterations of internal optimization (v1–
 - **A. Hot-word injection at ASR source** (`asr-breeze --glossary-file`)
   - `load_glossary()` in `src/taiwan_asr/common.py`
   - Glossary terms feed Whisper's `initial_prompt` + faster-whisper `hotwords`
-  - Demonstrably fixes `圓三 → 研三` (NTU graduate dorm) and `祝福二族 → 住輔二組` on real audio
+  - Demonstrably fixes `圓三 → 研三` (NTU graduate dorm) and similar
+    homophone errors on real audio (see `tests/test_glossary_effect.py`)
 - **B. Speaker diarization** (`src/taiwan_asr/diarize.py`)
   - pyannote.audio 4.x integration with `tensorlake/speaker-diarization-3.1` open mirror
   - `Segment.speaker_id` field added (backward-compatible default `None`)

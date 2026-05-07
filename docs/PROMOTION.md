@@ -71,10 +71,11 @@ of mixed Taiwan-Mandarin lecture/interview audio:
 - Breeze-ASR-25: RTF 382x average, 1554x on the longest sparse-audio file
 - Qwen3-ASR-1.7B: RTF 354x average
 
-The repo is fully MIT, every claim has a regression test (56 of them; 5 are
+The repo is fully MIT, every claim has a regression test (109 of them; 5 are
 contract tests that lock the Breeze model id so optimizations can't
-accidentally swap to a faster but generic Whisper variant). Open in Colab
-runs the full pipeline on a bundled 30-second sample on the free T4.
+accidentally swap to a faster but generic Whisper variant). The Colab
+quickstart opens a file picker so you can run the full pipeline on any
+audio you upload — the toolkit deliberately ships zero voice fixtures.
 
 Repo: https://github.com/thc1006/taiwan-asr-toolkit
 Colab: https://colab.research.google.com/github/thc1006/taiwan-asr-toolkit/blob/main/examples/quickstart.ipynb
@@ -94,7 +95,7 @@ Built taiwan-asr-toolkit: Traditional Chinese (Taiwan Mandarin) ASR that
 finally gets 研三舍, 軟體, and 雷射 right.
 
 Two SOTA models compared on identical pipeline. RTF 1554x on RTX 5090.
-56 TDD tests including 5 that lock the Breeze model id.
+109 TDD tests including 5 that lock the Breeze model id.
 
 (thread, 5 tweets)
 github.com/thc1006/taiwan-asr-toolkit
@@ -140,8 +141,8 @@ CER on hand-corrected 55s fixture: 2.34%
 **Tweet 5** (try it):
 
 ```
-Open in Colab badge runs the full pipeline on a bundled 30-second sample,
-free T4 GPU, zero install on your machine:
+Open in Colab badge opens a file picker so you can upload any Taiwan-Mandarin
+clip and run the full pipeline on a free T4 GPU, zero install on your machine:
 
 colab.research.google.com/github/thc1006/taiwan-asr-toolkit/blob/main/examples/quickstart.ipynb
 

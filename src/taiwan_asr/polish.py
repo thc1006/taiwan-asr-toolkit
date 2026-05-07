@@ -34,7 +34,7 @@ import logging
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
 import torch
-from taiwan_asr.common import init_torch, Segment, save_outputs, S2TW, Stopwatch
+from taiwan_asr.common import init_torch, Segment, save_outputs, S2TW, Stopwatch, load_glossary
 init_torch(_NCPU)
 
 
@@ -107,13 +107,14 @@ class Qwen3Polisher:
     def __init__(self, model_id: Optional[str] = None,
                  dtype: Optional[torch.dtype] = None,
                  device: str = "cuda:0",
-                 glossary: Optional[List[str]] = None):
+                 glossary: Optional[List[str]] = None,
+                 s2tw_enabled: bool = True):
         self.model_id = model_id or self.DEFAULT_MODELS[0]
         self.dtype = dtype or torch.bfloat16
         self.device = device
         self.tok = None
         self.model = None
-        self.s2tw = S2TW(True)
+        self.s2tw = S2TW(s2tw_enabled)
         # 預設保護詞彙 (台大常見) + 使用者自訂
         self.glossary: List[str] = list(dict.fromkeys(
             (glossary or []) + [
@@ -181,7 +182,7 @@ class Qwen3Polisher:
             do_sample=False,
             num_beams=1,                 # greedy 夠用,LLM 校對任務確定性高
             repetition_penalty=1.05,
-            pad_token_id=self.tok.eos_token_id,
+            pad_token_id=_choose_pad_token_id(self.tok),
         )
         gen = out[0, inputs["input_ids"].shape[1]:]
         text = self.tok.decode(gen, skip_special_tokens=True)
@@ -241,7 +242,46 @@ class Qwen3Polisher:
         return out, sw
 
 
-def main():
+def _choose_pad_token_id(tok) -> int:
+    """Return the right pad_token_id for HF generate().
+
+    Prefer the tokenizer's actual pad token. Fall back to eos_token_id only
+    when pad_token_id is truly absent (None or attribute missing). Note:
+    pad_token_id == 0 is a valid token id and must NOT be coerced to eos.
+    """
+    pad_id = getattr(tok, "pad_token_id", None)
+    if pad_id is not None:
+        return pad_id
+    return tok.eos_token_id
+
+
+def _resolve_extra_glossary(args) -> List[str]:
+    """Combine --glossary (inline, comma-separated) and --glossary-file
+    (path, or magic value 'builtin') into a single ordered, deduplicated list.
+
+    Honors the 'builtin' magic value the same way breeze.py / qwen3.py do —
+    via taiwan_asr.common.load_glossary, which resolves to the packaged
+    src/taiwan_asr/data/ntu_glossary.txt regardless of CWD.
+    """
+    seen = set()
+    out: List[str] = []
+    if getattr(args, "glossary", ""):
+        for t in args.glossary.split(","):
+            s = t.strip()
+            if s and s not in seen:
+                seen.add(s)
+                out.append(s)
+    if getattr(args, "glossary_file", ""):
+        for s in load_glossary(args.glossary_file):
+            if s and s not in seen:
+                seen.add(s)
+                out.append(s)
+    return out
+
+
+def build_argparser() -> argparse.ArgumentParser:
+    """Construct the asr-polish argparse CLI. Extracted so it's testable
+    without invoking main()."""
     ap = argparse.ArgumentParser(description="LLM 上下文修正 (Qwen2.5)")
     ap.add_argument("inputs", nargs="+", help="ASR 輸出 JSON (transcripts/qwen3/*.json 或 transcripts/breeze/*.json)")
     ap.add_argument("--out", default="", help="輸出目錄 (預設: 同層 + -polished)")
@@ -251,19 +291,17 @@ def main():
     ap.add_argument("--glossary", default="",
                     help="保護詞彙 (逗號分隔, e.g. --glossary '延三舍,祝福二組,延平學舍')")
     ap.add_argument("--glossary-file", default="",
-                    help="保護詞彙檔 (每行一個詞)")
+                    help="保護詞彙檔路徑;magic 值 'builtin' 載入內建 NTU glossary")
+    ap.add_argument("--no-s2tw", action="store_true",
+                    help="關閉 OpenCC s2twp 後處理 (與 asr-breeze / asr-qwen3 對等)")
+    return ap
+
+
+def main():
+    ap = build_argparser()
     args = ap.parse_args()
 
-    extra_glossary: List[str] = []
-    if args.glossary:
-        extra_glossary += [t.strip() for t in args.glossary.split(",") if t.strip()]
-    if args.glossary_file:
-        gp = Path(args.glossary_file)
-        if gp.is_file():
-            extra_glossary += [
-                ln.strip() for ln in gp.read_text(encoding="utf-8").splitlines()
-                if ln.strip() and not ln.startswith("#")
-            ]
+    extra_glossary = _resolve_extra_glossary(args)
 
     print("=" * 72)
     print(" LLM 上下文修正 (Qwen3 後處理)")
@@ -271,7 +309,8 @@ def main():
 
     dtype = torch.bfloat16 if args.dtype == "bf16" else torch.float16
     polisher = Qwen3Polisher(model_id=args.model, dtype=dtype,
-                             glossary=extra_glossary).load()
+                             glossary=extra_glossary,
+                             s2tw_enabled=not args.no_s2tw).load()
     print(f" 保護詞彙: {len(polisher.glossary)} 個 ({'自訂+內建' if extra_glossary else '內建'})")
 
     for src_json in args.inputs:

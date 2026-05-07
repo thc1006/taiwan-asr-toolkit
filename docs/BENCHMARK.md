@@ -76,11 +76,11 @@ v5 用 TDD 嚴格紅燈→綠燈 加三條軸線:
 
 新增 `taiwan_asr.common.load_glossary()` + Breeze `--glossary-file` 旗標。**glossary 詞彙會餵給 Whisper `initial_prompt` + `hotwords`**,讓 ASR 在源頭就認識專有名詞。
 
-實測 886 (台大住宿事件):
-| 同音錯字 | 無 glossary | 有 glossary | 結果 |
+實測 (台大住宿/行政域音訊):
+| 同音錯字 (示意) | 無 glossary | 有 glossary | 結果 |
 |---|---|---|---|
-| 圓三 / 延三 → 研三 | 圓三 | **研三** | 修正 |
-| 祝福二族 → 二組 | 二族 | **住輔二組** | 修正 |
+| 圓三 / 延三 → 研三 (NTU graduate dorm) | 圓三 | **研三** | 修正 |
+| 其他 NTU 行政單位同音字 | (錯字) | **(正確)** | 修正 |
 
 ### B. 講者分離 (pyannote.audio)
 

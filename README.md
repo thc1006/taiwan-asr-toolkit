@@ -4,13 +4,13 @@
 
 ### Production-grade Traditional Chinese (Taiwan Mandarin) speech-to-text — **RTF up to 1554x** on a single RTX 5090
 
-**Qwen3-ASR-1.7B** + **MediaTek Breeze-ASR-25** · Hot-word injection · LLM context polish · Speaker diarization · OpenCC s2twp · 72 TDD tests
+**Qwen3-ASR-1.7B** + **MediaTek Breeze-ASR-25** · Hot-word injection · LLM context polish · Speaker diarization · OpenCC s2twp · 109 TDD tests
 
 [![PyPI](https://img.shields.io/pypi/v/taiwan-asr-toolkit?label=PyPI&color=brightgreen)](https://pypi.org/project/taiwan-asr-toolkit/)
 [![Downloads](https://img.shields.io/pypi/dm/taiwan-asr-toolkit?label=PyPI%20downloads)](https://pypi.org/project/taiwan-asr-toolkit/)
 [![CI](https://github.com/thc1006/taiwan-asr-toolkit/actions/workflows/tests.yml/badge.svg)](https://github.com/thc1006/taiwan-asr-toolkit/actions/workflows/tests.yml)
 [![Release](https://img.shields.io/github/v/release/thc1006/taiwan-asr-toolkit?include_prereleases&sort=semver)](https://github.com/thc1006/taiwan-asr-toolkit/releases)
-[![Tests](https://img.shields.io/badge/tests-72%20passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-109%20passed-brightgreen)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](pyproject.toml)
 [![CUDA](https://img.shields.io/badge/CUDA-12.8%20%7C%20Blackwell%20sm__120-76B900)](docs/INSTALL.md)
 [![License](https://img.shields.io/badge/license-MIT-purple)](LICENSE)
@@ -139,13 +139,13 @@ audio is not present locally.
 |---|---|
 | **Two SOTA Mandarin ASR models** | [Qwen/Qwen3-ASR-1.7B](https://hf.co/Qwen/Qwen3-ASR-1.7B) + [MediaTek-Research/Breeze-ASR-25](https://hf.co/MediaTek-Research/Breeze-ASR-25). Both run, both compared. |
 | **Traditional Chinese always** | OpenCC `s2twp` post-processing converts any leftover 簡體 → 繁體 (Taiwan idioms): 軟件→軟體, 激光→雷射, 視頻→影片. |
-| **Hot-word injection** | Pass `--glossary-file builtin` for the packaged NTU glossary (or your own .txt); proper nouns get fed to Whisper's `initial_prompt` + `hotwords`. Fixes `圓三 → 研三`, `祝福二族 → 住輔二組`, etc. **at the source**. |
+| **Hot-word injection** | Pass `--glossary-file builtin` for the packaged NTU glossary (or your own .txt); proper nouns get fed to Whisper's `initial_prompt` + `hotwords`. Fixes homophone errors like `圓三 → 研三` (NTU graduate dorm) **at the source**. |
 | **Symmetric pipeline** | Same Silero VAD ONNX, same chunking, same dtype on both models. The benchmark measures **the model**, not the plumbing. |
-| **Multi-file pool batching** | Cross-file length-sorted batching keeps batch=48 fully utilized when transcribing folders of mixed-length files. |
+| **Multi-file pool batching (Qwen3)** | Cross-file length-sorted batching keeps batch=48 fully utilized when transcribing folders of mixed-length files. Breeze relies on faster-whisper's internal batched inference per call instead. |
 | **LLM context polish** | Optional Qwen3-8B post-correction with **NTU glossary protection** (won't accidentally "fix" `研三舍` to `延長`). |
 | **Speaker diarization** | Optional pyannote 3.x integration with open-mirror fallback (no gated-license blocker). |
 | **Real CER measurement** | jiwer-based CER with s2twp normalization. Bring your own ground-truth or use the included approximate fixture. |
-| **72 TDD tests** | Including 5 invariant tests that **lock the Breeze model ID** so optimizations can't accidentally swap to a different Whisper variant. |
+| **109 TDD tests** | Including 5 invariant tests that **lock the Breeze model ID** so optimizations can't accidentally swap to a different Whisper variant. |
 | **Blackwell-native** | bf16 + cuDNN-SDPA + torch.compile for RTX 5090. Auto-falls back gracefully on Hopper/Ada/Ampere/CPU. |
 
 ---
@@ -168,10 +168,11 @@ asr-qwen3 "music/interview.m4a"
 ### Batch transcription (auto pool batching)
 
 ```bash
-# Transcribes everything in music/ via Qwen3 with pool batching
+# Transcribes everything in music/ via Qwen3 with cross-file pool batching.
 asr-qwen3 music/*.mp3 music/*.m4a
 
-# Same with Breeze (now also gets cross-file batched if multiple files)
+# Breeze processes multi-file inputs sequentially (faster-whisper already
+# batches internally per call via BatchedInferencePipeline).
 asr-breeze music/*.{mp3,m4a,wav} --glossary-file builtin
 ```
 
@@ -260,7 +261,7 @@ taiwan-asr-toolkit/
 ├── glossary.txt       ← default NTU glossary (dorm/dept names)
 ├── run.sh             ← convenience wrapper around asr-* CLI commands
 ├── pyproject.toml     ← project metadata, deps, CLI scripts (asr-qwen3, asr-breeze, …)
-├── tests/             ← 72 TDD tests (including 5 Breeze invariants)
+├── tests/             ← 109 TDD tests (including 5 Breeze invariants)
 ├── docs/              ← BENCHMARK.md / ARCHITECTURE.md / INSTALL.md
 └── archive/           ← legacy Colab notebooks (kept for reference only)
 ```
@@ -272,7 +273,8 @@ After `pip install -e .` the following CLI commands are on PATH: `asr-qwen3`, `a
 ## Testing & contributing
 
 ```bash
-# All 72 tests, no model load required for "fast" tier
+# Most fast-tier tests run without model load (~2-3 s); a small subset
+# requires local audio fixtures and pytest.skip()s gracefully when absent.
 pytest -m fast
 
 # Breeze contract tests (NEVER allowed to fail)
@@ -302,7 +304,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full guide.
 | LLM context polish with proper-noun protection | Qwen3-8B + glossary | |  | |
 | Speaker diarization (open-mirror fallback) | tensorlake mirror | pyannote (gated) | |  |
 | RTX 5090 / Blackwell native (bf16 + cuDNN-SDPA) | |  | |  |
-| TDD with model-invariant lock | 72 tests | |  | |
+| TDD with model-invariant lock | 109 tests | |  | |
 | Best RTF on long Mandarin audio | **1554x** | ~70x | ~250x | ~30x |
 
 ---

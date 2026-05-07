@@ -1,0 +1,30 @@
+# sdist manifest — what to include beyond the wheel's package contents.
+#
+# Wheel still only ships src/taiwan_asr/** + data/*.txt (per pyproject.toml
+# [tool.setuptools.packages.find] where = ["src"] and package-data). Sdist gets
+# the test suite + supporting top-level files so a downstream developer can
+# `pip download --no-binary :all: taiwan-asr-toolkit && pytest tests/` and have
+# fixtures resolve.
+
+include CHANGELOG.md
+include CONTRIBUTING.md
+include LICENSE
+include README.md
+include MANIFEST.in
+include pyproject.toml
+include glossary.txt
+include llms.txt
+
+recursive-include tests *.py
+recursive-include docs *.md
+recursive-include examples *.ipynb *.md
+
+# Test fixtures are intentionally NOT shipped — see CHANGELOG v0.5.4 privacy
+# scrub. Contributors who need full audio-dependent test coverage bring their
+# own files (CONTRIBUTING.md documents the path conventions).
+recursive-exclude tests/fixtures *
+recursive-exclude transcripts *
+recursive-exclude music *
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude .DS_Store

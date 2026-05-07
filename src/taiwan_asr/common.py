@@ -419,9 +419,21 @@ class Stopwatch:
         self.events: List[Tuple[str, float]] = []
         self.t0 = time.perf_counter()
         self.last = self.t0
+        self._seen: set = set()
 
     def lap(self, label: str):
         now = time.perf_counter()
+        if label in self._seen:
+            # Duplicate label — Stopwatch.get(prefix) returns the FIRST match
+            # so a second lap with the same label silently shadows the second
+            # measurement. Warn the caller.
+            import sys
+            print(
+                f" [Stopwatch] duplicate label {label!r} — "
+                f"Stopwatch.get(prefix) only returns the first occurrence",
+                file=sys.stderr,
+            )
+        self._seen.add(label)
         self.events.append((label, now - self.last))
         self.last = now
 

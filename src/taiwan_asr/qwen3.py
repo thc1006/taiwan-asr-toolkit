@@ -108,6 +108,14 @@ def detect_hw() -> HwConfig:
 # ============================================================
 # Qwen3-ASR 引擎
 # ============================================================
+def _normalize_pool_key(path: str) -> str:
+    """Collapse equivalent path strings (e.g. './a.mp3' vs 'a.mp3') to one
+    canonical form for use as a dict key in transcribe_files. Does NOT
+    resolve symlinks (Path.resolve requires the file to exist; we want this
+    to work even before the file is decoded)."""
+    return os.path.normpath(path)
+
+
 class Qwen3ASR:
     MODEL = "Qwen/Qwen3-ASR-1.7B"
     ALIGNER = "Qwen/Qwen3-ForcedAligner-0.6B"
@@ -262,6 +270,7 @@ class Qwen3ASR:
             except torch.cuda.OutOfMemoryError:
                 torch.cuda.empty_cache(); gc.collect()
                 # 把目前 batch + 後面所有 batch 用一半的 bs 重新分割
+                # cur_bs 保持 LOCAL — 不寫回 self.cfg.batch_size,避免污染後續檔案/呼叫
                 cur_bs = max(1, cur_bs // 2)
                 print(f"\n  OOM,降批 → {cur_bs} 並重新分配後續…")
                 remaining_idxs = idxs + [i for b in pending_idxs for i in b]
@@ -269,7 +278,6 @@ class Qwen3ASR:
                     remaining_idxs[i:i + cur_bs]
                     for i in range(0, len(remaining_idxs), cur_bs)
                 ]
-                self.cfg.batch_size = cur_bs
                 continue
 
             if not isinstance(results, list):
@@ -318,6 +326,9 @@ class Qwen3ASR:
         language: Optional[str] = "zh",
         sr: int = 16000,
     ) -> Tuple[Dict[str, List[Segment]], Stopwatch]:
+        # Normalize input paths so duplicates (e.g. './a.mp3' and 'a.mp3')
+        # collapse to a single key in the result dict.
+        paths = [_normalize_pool_key(p) for p in paths]
         """跨檔 chunk pool batching — 把所有檔的 VAD 段拉到同一個 length-sorted
         batch 流水線,讓 batch 永遠塞滿 (避免短檔浪費 batch capacity)。
 
@@ -328,11 +339,20 @@ class Qwen3ASR:
         lang_full = self.normalize_lang(language)
 
         # ── 1) 各檔解碼 + VAD 切片,所有 chunk 帶 file_idx 標籤 ──
+        # Per-file fault isolation: if one file fails to decode (corrupt mp4 in
+        # a folder of audio, ffmpeg missing codec, etc.), warn and skip THAT
+        # file — the remaining pool still produces transcripts. Pre-v0.5.5 a
+        # single bad file aborted the whole pool.
         pooled: List[Tuple[int, Dict[str, Any]]] = []
         durs: List[float] = []
         for fi, src in enumerate(paths):
-            audio, dur = AudioIO.decode_to_array(src, sr=sr)
-            chunks = self.vad.speech_chunks(audio)
+            try:
+                audio, dur = AudioIO.decode_to_array(src, sr=sr)
+                chunks = self.vad.speech_chunks(audio)
+            except Exception as e:
+                print(f"\n  解碼/VAD 失敗 → 跳過 {src} ({type(e).__name__}: {str(e)[:80]})")
+                durs.append(0.0)
+                continue
             for c in chunks:
                 pooled.append((fi, c))
             durs.append(dur)
@@ -372,11 +392,11 @@ class Qwen3ASR:
                 results = self._transcribe_batch(audios, lang_full)
             except torch.cuda.OutOfMemoryError:
                 torch.cuda.empty_cache(); gc.collect()
+                # cur_bs 保持 LOCAL — 不寫回 self.cfg.batch_size
                 cur_bs = max(1, cur_bs // 2)
                 print(f"\n  OOM,降批 → {cur_bs} 並重新分配後續…")
                 rest = idxs + [i for b in pending for i in b]
                 pending = [rest[i:i + cur_bs] for i in range(0, len(rest), cur_bs)]
-                self.cfg.batch_size = cur_bs
                 continue
 
             if not isinstance(results, list):

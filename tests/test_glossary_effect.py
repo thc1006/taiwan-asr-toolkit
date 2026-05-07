@@ -15,8 +15,10 @@ def test_886_breeze_uses_yan3_not_yuan3(existing_breeze_886):
     n_yan3 = full.count("研三")
     n_yuan3 = full.count("圓三")
     assert n_yan3 >= 1, (
-        f"啟用 glossary 後 886 應含『研三』(NTU 研究生宿舍),實際前 200 字: {full[:200]}\n"
-        f"請重跑: asr-breeze 'music/標準錄音 886.mp3' --glossary-file glossary.txt"
+        f"啟用 glossary 後 886 應含『研三』(NTU 研究生宿舍)。"
+        f"統計: 研三={n_yan3}, 圓三={n_yuan3}, 總段數={len(existing_breeze_886)}, "
+        f"總字數={len(full)}。請重跑: "
+        f"asr-breeze 'music/標準錄音 886.mp3' --glossary-file builtin"
     )
     assert n_yan3 >= n_yuan3, (
         f"研三 出現次數應 >= 圓三 (hot-word 應抑制錯字)\n"

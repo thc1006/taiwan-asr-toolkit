@@ -16,8 +16,12 @@ from typing import Dict, Any, Optional
 
 
 _PUNCT_RE = re.compile(
-    r"[\s,\.!?;:、。,!?;:「」『』\"'()（）\-—_…\*#@/\\\[\]\{\}<>《》〈〉【】~`]+"
+    r"[\s,\.!?;:、。,!?;:「」『』\"'()（）\-—_…⋯‧\*#@/\\\[\]\{\}<>《》〈〉【】~`]+"
 )
+# `⋯` U+22EF MIDLINE HORIZONTAL ELLIPSIS, `‧` U+2027 HYPHENATION POINT —
+# common in Apple Voice Memos transcripts and Chinese typography. Without
+# them in the strip set, CER between two ASR outputs that only differ in
+# ellipsis style is non-zero. Treat all ellipsis variants the same.
 
 
 _S2TW = None  # 延後載入避免測試開銷
@@ -97,8 +101,13 @@ def compute_metrics(reference: str, hypothesis: str) -> Dict[str, Any]:
     hyp_str = " ".join(hyp_chars)
 
     out = jiwer.process_words(ref_str, hyp_str)
+    # NOTE (L3 v0.5.5): "wer" key is intentionally identical to "cer" — we
+    # treat each Chinese character as one word, so jiwer's word-level WER
+    # is char-level CER. Returned in both keys for backward compatibility,
+    # but downstream code SHOULD prefer "cer" because Mandarin has no word
+    # segmentation; "wer" alone would be meaningless.
     return {
-        "cer": float(out.wer),  # 因為我們把字當成 word,wer == cer
+        "cer": float(out.wer),
         "wer": float(out.wer),
         "hits": int(out.hits),
         "substitutions": int(out.substitutions),

@@ -155,9 +155,14 @@ def test_existing_breeze_886_is_traditional(existing_breeze_886):
     traditional_indicators = "國發現實際經濟認識讓說話語門間問題點頭計較實際"
     n_trad = sum(1 for c in full if c in traditional_indicators)
 
+    # Privacy: assertion messages must report aggregate stats only,
+    # never raw transcript slices — failed CI runs would otherwise
+    # leak fixture content into public logs.
     assert n_trad >= n_simp, (
-        f"Breeze 輸出簡體太多: 簡={n_simp}, 繁={n_trad}\n"
-        f"前 200 字: {full[:200]}"
+        f"Breeze 輸出簡體太多: 簡={n_simp}, 繁={n_trad}, "
+        f"總字數={len(full)}"
     )
     # 至少應有一些常見繁體字
-    assert n_trad >= 5, f"繁體字數 {n_trad} 太少,前 200 字: {full[:200]}"
+    assert n_trad >= 5, (
+        f"繁體字數 {n_trad} 太少 (總字數={len(full)}, 簡體={n_simp})"
+    )
