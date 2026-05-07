@@ -4,11 +4,11 @@
 
 ### Production-grade Traditional Chinese (Taiwan Mandarin) speech-to-text — **RTF up to 1554x** on a single RTX 5090
 
-**Qwen3-ASR-1.7B** + **MediaTek Breeze-ASR-25** · Hot-word injection · LLM context polish · Speaker diarization · OpenCC s2twp · 56 TDD tests
+**Qwen3-ASR-1.7B** + **MediaTek Breeze-ASR-25** · Hot-word injection · LLM context polish · Speaker diarization · OpenCC s2twp · 65 TDD tests
 
 [![CI](https://github.com/thc1006/taiwan-asr-toolkit/actions/workflows/tests.yml/badge.svg)](https://github.com/thc1006/taiwan-asr-toolkit/actions/workflows/tests.yml)
 [![Release](https://img.shields.io/github/v/release/thc1006/taiwan-asr-toolkit?include_prereleases&sort=semver)](https://github.com/thc1006/taiwan-asr-toolkit/releases)
-[![Tests](https://img.shields.io/badge/tests-56%20passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-65%20passed-brightgreen)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](pyproject.toml)
 [![CUDA](https://img.shields.io/badge/CUDA-12.8%20%7C%20Blackwell%20sm__120-76B900)](docs/INSTALL.md)
 [![License](https://img.shields.io/badge/license-MIT-purple)](LICENSE)
@@ -119,7 +119,7 @@ Want to verify? `pytest tests/test_glossary_effect.py -v` — locks in the `圓�
 | **LLM context polish** | Optional Qwen3-8B post-correction with **NTU glossary protection** (won't accidentally "fix" `研三舍` to `延長`). |
 | **Speaker diarization** | Optional pyannote 3.x integration with open-mirror fallback (no gated-license blocker). |
 | **Real CER measurement** | jiwer-based CER with s2twp normalization. Bring your own ground-truth or use the included approximate fixture. |
-| **56 TDD tests** | Including 5 invariant tests that **lock the Breeze model ID** so optimizations can't accidentally swap to a different Whisper variant. |
+| **65 TDD tests** | Including 5 invariant tests that **lock the Breeze model ID** so optimizations can't accidentally swap to a different Whisper variant. |
 | **Blackwell-native** | bf16 + cuDNN-SDPA + torch.compile for RTX 5090. Auto-falls back gracefully on Hopper/Ada/Ampere/CPU. |
 
 ---
@@ -232,7 +232,7 @@ taiwan-asr-toolkit/
 ├── glossary.txt       ← default NTU glossary (dorm/dept names)
 ├── run.sh             ← convenience wrapper around asr-* CLI commands
 ├── pyproject.toml     ← project metadata, deps, CLI scripts (asr-qwen3, asr-breeze, …)
-├── tests/             ← 56 TDD tests (including 5 Breeze invariants)
+├── tests/             ← 65 TDD tests (including 5 Breeze invariants)
 ├── docs/              ← BENCHMARK.md / ARCHITECTURE.md / INSTALL.md
 └── archive/           ← legacy Colab notebooks (kept for reference only)
 ```
@@ -244,7 +244,7 @@ After `pip install -e .` the following CLI commands are on PATH: `asr-qwen3`, `a
 ## Testing & contributing
 
 ```bash
-# All 56 tests, no model load required for "fast" tier
+# All 65 tests, no model load required for "fast" tier
 pytest -m fast
 
 # Breeze contract tests (NEVER allowed to fail)
@@ -274,7 +274,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full guide.
 | LLM context polish with proper-noun protection | Qwen3-8B + glossary | |  | |
 | Speaker diarization (open-mirror fallback) | tensorlake mirror | pyannote (gated) | |  |
 | RTX 5090 / Blackwell native (bf16 + cuDNN-SDPA) | |  | |  |
-| TDD with model-invariant lock | 56 tests | |  | |
+| TDD with model-invariant lock | 65 tests | |  | |
 | Best RTF on long Mandarin audio | **1554x** | ~70x | ~250x | ~30x |
 
 ---
@@ -319,7 +319,7 @@ Third-party model licenses (you must comply with each):
 
 <div align="center">
 
-**Made with bf16 tensor cores in Taiwan **
+** Made with bf16 tensor cores in Taiwan **
 
 If this toolkit saved you hours, **drop a star** — it helps more people find it.
 
