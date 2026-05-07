@@ -24,6 +24,18 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and
 - `docs/BENCHMARK.md` stale `_asr_common.load_glossary()` reference now
   points at the post-refactor module path `taiwan_asr.common.load_glossary()`.
 
+### Caveats
+- The batch sizes for the >= 70 GB and >= 140 GB tiers (RTX Pro 6000, B100,
+  B200) are **extrapolated** from the 32 GB RTX 5090 measurement, not
+  field-tuned. They are conservative defaults that should fit comfortably
+  in VRAM, but may not be the exact Pareto-optimal value. If you are using
+  a Pro 6000 / B-series card and find a better batch size empirically,
+  please open an issue with your numbers — or override at the CLI:
+  ```bash
+  asr-breeze --batch 80 audio.mp3   # override auto-detected batch=64 on Pro 6000
+  asr-qwen3  --batch 80 audio.mp3
+  ```
+
 ## [0.5.0] – 2026-05-07
 
 Initial public release. Combines five iterations of internal optimization (v1–v5).

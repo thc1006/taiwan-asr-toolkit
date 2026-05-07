@@ -1,8 +1,14 @@
 # Promotion playbook (manual steps)
 
-This file is **not** in the user-facing docs intentionally — it's a checklist
-for getting the toolkit in front of the right audiences. Everything below is
-draft text you (the human maintainer) review and post yourself.
+> **Internal launch checklist — public for transparency, not part of the user-facing docs.**
+> This is the maintainer's own to-do list for getting the toolkit in front of relevant audiences.
+> If you are evaluating the toolkit, you do not need to read this — start with [`README.md`](../README.md)
+> or [`examples/quickstart.ipynb`](../examples/quickstart.ipynb) instead.
+
+Everything below is draft copy that the human maintainer reviews and posts. Nothing here is
+automated, nothing pretends to be organic engagement, and the linked communities
+(HN / Reddit / HF) all have rules against low-effort spam — so the drafts focus on technical
+substance and concrete numbers rather than marketing fluff.
 
 ## 1. PyPI publish (one-time, ~10 min)
 
@@ -90,7 +96,7 @@ finally gets 研三舍, 軟體, and 雷射 right.
 Two SOTA models compared on identical pipeline. RTF 1554x on RTX 5090.
 56 TDD tests including 5 that lock the Breeze model id.
 
-🧵
+(thread, 5 tweets)
 github.com/thc1006/taiwan-asr-toolkit
 ```
 

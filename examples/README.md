@@ -6,7 +6,7 @@ Tutorials and side-by-side evidence for the toolkit. New users start here.
 
 | File | What it is | When to read |
 |---|---|---|
-| [`quickstart.ipynb`](quickstart.ipynb) | 9-cell Jupyter notebook, Colab-ready. Detects your GPU, downloads a 30-second Taiwan-Mandarin sample, runs Breeze-ASR-25 with hot-word injection, prints the transcript. | First time using the toolkit, or want a no-install Colab demo. |
+| [`quickstart.ipynb`](quickstart.ipynb) | Colab-ready Jupyter notebook. Detects your GPU, downloads a 30-second Taiwan-Mandarin sample, runs Breeze-ASR-25 with hot-word injection, prints the transcript. | First time using the toolkit, or want a no-install Colab demo. |
 | [`compare_alternatives.md`](compare_alternatives.md) | Real character-level comparison vs. stock Whisper / faster-whisper / whisperX on a known-hard NTU proper noun (`研三舍`). Shows what hot-word injection actually fixes. | After running the notebook, when you want to know "is this real or marketing?". |
 
 ## Open quickstart in Colab
