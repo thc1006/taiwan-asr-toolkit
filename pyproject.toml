@@ -37,9 +37,11 @@ classifiers = [
 ]
 
 # 核心相依 (兩個 ASR 後端共用)
+# torch>=2.5 是真實下限 (我們唯一用到的較新 API 是 cuDNN-SDPA,且已用 try/except 包覆)。
+# Colab preinstall 的 torch 通常是 2.5-2.7,這個下限不會強制 force-upgrade。
 dependencies = [
-    "torch>=2.7",
-    "torchaudio>=2.7",
+    "torch>=2.5",
+    "torchaudio>=2.5",
     "transformers>=4.46",
     "accelerate>=1.0",
     "qwen-asr>=0.0.6",

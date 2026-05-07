@@ -25,11 +25,13 @@ jobs:
       - name: Install CPU PyTorch + project (editable)
         run: |
           python -m pip install --upgrade pip
+          # CPU-only torch wheel (~150 MB) — keeps CI fast.
+          # All other deps (transformers, qwen-asr, faster-whisper, ctranslate2,
+          # silero-vad, pydub, soundfile, librosa, opencc) come transitively via
+          # the project's `dependencies` list in pyproject.toml.
           pip install torch torchaudio \
             --index-url https://download.pytorch.org/whl/cpu
           pip install -e ".[eval,dev]"
-          # Mock-friendly heavy deps reachable transitively from `import taiwan_asr.X`
-          pip install qwen-asr faster-whisper ctranslate2 silero-vad pydub
 
       - name: Run @fast tests
         run: pytest -m fast
