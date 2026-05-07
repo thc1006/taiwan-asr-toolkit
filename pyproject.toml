@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "taiwan-asr-toolkit"
-version = "0.5.1"
+version = "0.5.2"
 description = "Production-grade Traditional Chinese / Taiwan Mandarin ASR toolkit — Qwen3-ASR + Breeze-ASR-25, LLM polish, speaker diarization, RTX 5090 / Blackwell tuned, RTF up to 1554x."
 readme = "README.md"
 license = { file = "LICENSE" }

@@ -3,6 +3,49 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.2] – 2026-05-07
+
+Quality / compatibility / docs polish patch in response to a self-review of
+the v0.5.0 -> v0.5.1 diff. No user-visible behavior changes.
+
+### Added
+- `tests/test_blackwell_vram_tier.py`: 9 new tests (7 parametrized boundary
+  tests + 1 explicit RTX 5090 baseline regression guard + 1 dtype guard)
+  that lock the v0.5.1 Blackwell VRAM-tier batch table. Test count
+  56 -> 65; all `@fast`, no GPU required (uses `monkeypatch` on
+  `torch.cuda.*`).
+- `examples/README.md`: navigation page for the examples/ directory with
+  the Open-in-Colab badge and short descriptions of `quickstart.ipynb`
+  and `compare_alternatives.md`.
+- `examples/quickstart.ipynb`: dedicated markdown warning cell before the
+  optional Qwen3 demo, calling out the ~5 GB additional model download
+  (notebook now has 10 cells, was 9).
+- CHANGELOG v0.5.1 retroactive `### Caveats` note: the >= 70 GB and
+  >= 140 GB Blackwell tier batch sizes are extrapolated from the 32 GB
+  RTX 5090 measurement, not field-tuned, with `--batch N` override
+  guidance for empirical fine-tuners.
+
+### Changed
+- `pyproject.toml`: lower `torch>=2.7` to `torch>=2.5` (and `torchaudio` to
+  match). The only post-2.5 API the toolkit calls
+  (`torch.backends.cuda.enable_cudnn_sdp`) is already wrapped in try/except
+  in `init_torch()`, so older torch falls back gracefully. Colab as of
+  mid-2026 preinstalls torch 2.5-2.7, so the previous lower bound was
+  forcing unnecessary upgrades.
+- `.github/workflows/tests.yml`: dropped the redundant `pip install
+  qwen-asr faster-whisper ctranslate2 silero-vad pydub` line; those come
+  transitively via `pip install -e ".[eval,dev]"`.
+- `docs/PROMOTION.md`: prepended a "public for transparency, not user
+  docs" header making clear this is the maintainer's internal launch
+  checklist, not a marketing playbook for users to follow.
+
+### Fixed
+- `docs/PROMOTION.md`: dropped a stray emoji that survived the v0.5.0
+  emoji-cleanup commit.
+- `examples/README.md`: removed brittle "9-cell" claim about
+  `quickstart.ipynb` (cell count may drift; the description doesn't
+  benefit from naming a number).
+
 ## [0.5.1] – 2026-05-07
 
 ### Added
