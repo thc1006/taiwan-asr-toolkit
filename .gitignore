@@ -10,11 +10,15 @@ transcripts/
 # legacy 輸出目錄
 outputs/
 
-# 暫存音訊
+# 暫存音訊 / 測試 fixture (真人語音一律不入版控,避免外洩個資)
 *.wav
-
-# 測試用小檔 (~1MB) 例外保留
-!tests/fixtures/*.wav
+*.mp3
+*.m4a
+*.flac
+tests/fixtures/*.wav
+tests/fixtures/*.mp3
+tests/fixtures/*.m4a
+tests/fixtures/*.flac
 
 # ── Python ──
 __pycache__/

@@ -3,6 +3,40 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.4] – 2026-05-07
+
+### Fixed
+- **`asr-qwen3 --no-aligner` no longer crashes.** `_transcribe_batch`
+  was hardcoding `return_time_stamps=True`, which the underlying
+  `qwen_asr` library refuses when the ForcedAligner is not loaded
+  (`ValueError: return_time_stamps=True requires forced_aligner …`).
+  It now mirrors `aligner_enabled`, so `--no-aligner` saves the
+  expected ~25 % time + ~600 MB download without the warmup or first
+  real call exploding. Regression test in
+  `tests/test_qwen3_no_aligner.py`.
+
+### Changed (privacy)
+- **Removed all voice fixtures from the repo.** `tests/fixtures/clip_30s.wav`
+  and the matching ground-truth text are no longer tracked. The wheel never
+  shipped them (only `taiwan_asr/data/*.txt` is in `package-data`), so PyPI
+  installs are unaffected. Users now bring their own audio. Existing
+  audio-dependent tests (`test_vad_gpu.py`, `test_glossary_effect.py`)
+  `pytest.skip()` cleanly when no fixture is provided locally.
+- **Colab quickstart notebook now opens a real file picker.** Cell 3
+  detects Google Colab and uses `google.colab.files.upload()`; later cells
+  parameterize by `audio_path` / `audio_stem`, so any uploaded audio works
+  end-to-end. In local Jupyter the cell raises a friendly message asking
+  you to set `audio_path` manually.
+- `examples/compare_alternatives.md` removed. Its technical content
+  (`condition_on_previous_text=False` rationale, OpenCC `s2twp` mapping,
+  hot-word injection mechanics) lives in README.md and `docs/BENCHMARK.md`.
+
+### Caveats
+- v0.5.0 – v0.5.3 GitHub Releases were rebuilt at this version's tag SHAs
+  to scrub the audio fixture from auto-generated source archives.
+  PyPI artifacts at those versions remain unchanged (they were already
+  voice-free).
+
 ## [0.5.3] – 2026-05-07
 
 ### Added
@@ -39,8 +73,7 @@ the v0.5.0 -> v0.5.1 diff. No user-visible behavior changes.
   56 -> 65; all `@fast`, no GPU required (uses `monkeypatch` on
   `torch.cuda.*`).
 - `examples/README.md`: navigation page for the examples/ directory with
-  the Open-in-Colab badge and short descriptions of `quickstart.ipynb`
-  and `compare_alternatives.md`.
+  the Open-in-Colab badge and a short description of `quickstart.ipynb`.
 - `examples/quickstart.ipynb`: dedicated markdown warning cell before the
   optional Qwen3 demo, calling out the ~5 GB additional model download
   (notebook now has 10 cells, was 9).

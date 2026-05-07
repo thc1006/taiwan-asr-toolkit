@@ -198,10 +198,14 @@ class Qwen3ASR:
 
     @torch.inference_mode()
     def _transcribe_batch(self, batch_audios, language: Optional[str]):
+        # When --no-aligner was passed, the model is loaded without the
+        # ForcedAligner and qwen_asr will raise if return_time_stamps=True.
+        # Mirror the loaded state so chunk-level start/end (from VAD) still
+        # work, just without character-level timestamps.
         return self.model.transcribe(
             audio=batch_audios,
             language=language,
-            return_time_stamps=True,
+            return_time_stamps=self.aligner_enabled,
         )
 
     def transcribe(

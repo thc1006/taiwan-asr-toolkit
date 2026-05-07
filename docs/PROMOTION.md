@@ -78,7 +78,7 @@ runs the full pipeline on a bundled 30-second sample on the free T4.
 
 Repo: https://github.com/thc1006/taiwan-asr-toolkit
 Colab: https://colab.research.google.com/github/thc1006/taiwan-asr-toolkit/blob/main/examples/quickstart.ipynb
-Side-by-side comparison: https://github.com/thc1006/taiwan-asr-toolkit/blob/main/examples/compare_alternatives.md
+Benchmark deep dive: https://github.com/thc1006/taiwan-asr-toolkit/blob/main/docs/BENCHMARK.md
 
 Happy to discuss design choices in comments — particularly the
 condition_on_previous_text=False default for Mandarin and why CTranslate2

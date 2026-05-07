@@ -4,20 +4,20 @@
 
 ### Production-grade Traditional Chinese (Taiwan Mandarin) speech-to-text — **RTF up to 1554x** on a single RTX 5090
 
-**Qwen3-ASR-1.7B** + **MediaTek Breeze-ASR-25** · Hot-word injection · LLM context polish · Speaker diarization · OpenCC s2twp · 69 TDD tests
+**Qwen3-ASR-1.7B** + **MediaTek Breeze-ASR-25** · Hot-word injection · LLM context polish · Speaker diarization · OpenCC s2twp · 72 TDD tests
 
 [![PyPI](https://img.shields.io/pypi/v/taiwan-asr-toolkit?label=PyPI&color=brightgreen)](https://pypi.org/project/taiwan-asr-toolkit/)
 [![Downloads](https://img.shields.io/pypi/dm/taiwan-asr-toolkit?label=PyPI%20downloads)](https://pypi.org/project/taiwan-asr-toolkit/)
 [![CI](https://github.com/thc1006/taiwan-asr-toolkit/actions/workflows/tests.yml/badge.svg)](https://github.com/thc1006/taiwan-asr-toolkit/actions/workflows/tests.yml)
 [![Release](https://img.shields.io/github/v/release/thc1006/taiwan-asr-toolkit?include_prereleases&sort=semver)](https://github.com/thc1006/taiwan-asr-toolkit/releases)
-[![Tests](https://img.shields.io/badge/tests-69%20passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-72%20passed-brightgreen)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue)](pyproject.toml)
 [![CUDA](https://img.shields.io/badge/CUDA-12.8%20%7C%20Blackwell%20sm__120-76B900)](docs/INSTALL.md)
 [![License](https://img.shields.io/badge/license-MIT-purple)](LICENSE)
 [![繁體中文](https://img.shields.io/badge/output-繁體中文%20s2twp-red)](#features)
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/thc1006/taiwan-asr-toolkit/blob/main/examples/quickstart.ipynb)
 
-[**Why this exists**](#why-this-exists) · [**Quick start**](#quick-start) · [**Benchmarks**](#benchmarks) · [**Usage**](#usage) · [**Architecture**](docs/ARCHITECTURE.md) · [**vs alternatives**](examples/compare_alternatives.md)
+[**Why this exists**](#why-this-exists) · [**Quick start**](#quick-start) · [**Benchmarks**](#benchmarks) · [**Usage**](#usage) · [**Architecture**](docs/ARCHITECTURE.md) · [**Benchmark deep dive**](docs/BENCHMARK.md)
 
 </div>
 
@@ -43,8 +43,9 @@ This toolkit fixes all of those. Two production-grade Mandarin ASR models, **ide
 
 ### Zero-effort try (Colab)
 
-Click the **Open in Colab** badge at the top — runs the full pipeline on a
-bundled 30-second sample with a Colab GPU, no install on your machine.
+Click the **Open in Colab** badge at the top — opens a file picker so you
+can upload any Taiwan-Mandarin clip from your machine and run the full
+pipeline on a Colab GPU. No local install required.
 
 ### Install from PyPI
 
@@ -56,18 +57,24 @@ pip install taiwan-asr-toolkit
 asr-breeze your_audio.mp3 --glossary-file builtin
 ```
 
-### 30-second local test (clone, no audio needed)
+### Run on your own audio (clone-and-go)
 
 ```bash
 git clone https://github.com/thc1006/taiwan-asr-toolkit.git && cd taiwan-asr-toolkit
 pip install --index-url https://download.pytorch.org/whl/cu128 torch torchaudio
 pip install -e ".[all]"
 
-asr-breeze tests/fixtures/clip_30s.wav --glossary-file builtin
-cat transcripts/breeze/clip_30s_breeze.txt
+# Drop any Taiwan-Mandarin audio file (m4a / mp3 / wav / mp4 / flac) into the repo:
+asr-breeze your_audio.m4a --glossary-file builtin
+cat "transcripts/breeze/$(basename your_audio .m4a)_breeze.txt"
 ```
 
-That's it — 30 s of Taiwan Mandarin in, Traditional Chinese transcript out.
+That's it — Taiwan Mandarin in, Traditional Chinese transcript out.
+
+> **No fixture is bundled in this repo.** The toolkit deliberately ships zero
+> real-voice audio to avoid any chance of leaking identifiable speakers. Bring
+> your own clip; the [Colab quickstart notebook](examples/quickstart.ipynb)
+> opens a file picker so users can upload their own.
 
 ### On your own audio
 
@@ -110,14 +117,19 @@ Test corpus: **11 audio files, 712.6 minutes** (≈12 hours) of Taiwan-Mandarin 
 | Coverage % (transcribed vs audio time) | **83.3%** | 79.8% |
 | OpenCC `s2twp` Traditional ratio | 0.97 | 0.97 |
 
-### Real CER on hand-corrected fixture (886 first 55s)
+### Real CER on a 55-second hand-corrected sample
 
 | Model | CER | Notes |
 |---|---:|---|
-| Breeze-ASR-25 + glossary | **2.34%** | hot-word injection fixes 圓三→研三 at source |
+| Breeze-ASR-25 + glossary | **2.34%** | hot-word injection fixes `圓三 → 研三` at source |
 | Qwen3-ASR-1.7B           | 68.42% | over-transcribes (97 extra chars not in fixed-time GT) |
 
-Want to verify? `pytest tests/test_glossary_effect.py -v` — locks in the `圓三 → 研三` improvement as a regression test.
+Numbers are from one author-held internal recording; the audio itself is
+not redistributed. Bring your own ground-truth and run `asr-bench --gt-dir
+path/to/your_gts/` to reproduce on your data. The hot-word effect is
+locked separately as a regression test in
+`tests/test_glossary_effect.py`, which `pytest.skip()`s cleanly when the
+audio is not present locally.
 
 ---
 
@@ -133,7 +145,7 @@ Want to verify? `pytest tests/test_glossary_effect.py -v` — locks in the `圓�
 | **LLM context polish** | Optional Qwen3-8B post-correction with **NTU glossary protection** (won't accidentally "fix" `研三舍` to `延長`). |
 | **Speaker diarization** | Optional pyannote 3.x integration with open-mirror fallback (no gated-license blocker). |
 | **Real CER measurement** | jiwer-based CER with s2twp normalization. Bring your own ground-truth or use the included approximate fixture. |
-| **69 TDD tests** | Including 5 invariant tests that **lock the Breeze model ID** so optimizations can't accidentally swap to a different Whisper variant. |
+| **72 TDD tests** | Including 5 invariant tests that **lock the Breeze model ID** so optimizations can't accidentally swap to a different Whisper variant. |
 | **Blackwell-native** | bf16 + cuDNN-SDPA + torch.compile for RTX 5090. Auto-falls back gracefully on Hopper/Ada/Ampere/CPU. |
 
 ---
@@ -197,8 +209,10 @@ asr-diarize transcripts/breeze/interview_breeze.json music/interview.m4a
 ### Benchmark + CER report
 
 ```bash
-# Generates docs/BENCHMARK.md with speed + quality metrics
-asr-bench --gt-dir tests/fixtures
+# Generates docs/BENCHMARK.md with speed + quality metrics.
+# --gt-dir points at a folder of {audio_stem}_first_{N}s_gt.txt files
+# you provide yourself; the repo no longer ships any voice fixtures.
+asr-bench --gt-dir path/to/your_gt_dir
 ```
 
 ---
@@ -246,7 +260,7 @@ taiwan-asr-toolkit/
 ├── glossary.txt       ← default NTU glossary (dorm/dept names)
 ├── run.sh             ← convenience wrapper around asr-* CLI commands
 ├── pyproject.toml     ← project metadata, deps, CLI scripts (asr-qwen3, asr-breeze, …)
-├── tests/             ← 69 TDD tests (including 5 Breeze invariants)
+├── tests/             ← 72 TDD tests (including 5 Breeze invariants)
 ├── docs/              ← BENCHMARK.md / ARCHITECTURE.md / INSTALL.md
 └── archive/           ← legacy Colab notebooks (kept for reference only)
 ```
@@ -258,7 +272,7 @@ After `pip install -e .` the following CLI commands are on PATH: `asr-qwen3`, `a
 ## Testing & contributing
 
 ```bash
-# All 69 tests, no model load required for "fast" tier
+# All 72 tests, no model load required for "fast" tier
 pytest -m fast
 
 # Breeze contract tests (NEVER allowed to fail)
@@ -288,7 +302,7 @@ See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full guide.
 | LLM context polish with proper-noun protection | Qwen3-8B + glossary | |  | |
 | Speaker diarization (open-mirror fallback) | tensorlake mirror | pyannote (gated) | |  |
 | RTX 5090 / Blackwell native (bf16 + cuDNN-SDPA) | |  | |  |
-| TDD with model-invariant lock | 69 tests | |  | |
+| TDD with model-invariant lock | 72 tests | |  | |
 | Best RTF on long Mandarin audio | **1554x** | ~70x | ~250x | ~30x |
 
 ---

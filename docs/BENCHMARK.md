@@ -96,7 +96,7 @@ v5 用 TDD 嚴格紅燈→綠燈 加三條軸線:
 ### C. 真 CER (Character Error Rate) 評估
 
 新增 `src/taiwan_asr/cer_eval.py` (jiwer + s2twp 中文正規化) + `asr-bench --gt-dir` 整合。
-ground-truth fixture: `tests/fixtures/標準錄音 886_first_55s_gt.txt`
+ground-truth 檔案命名規則: `{audio_stem}_first_{N}s_gt.txt` (放在 `--gt-dir` 指定的目錄下;為避免外洩個資,本 repo 不附帶任何真人語音 GT,請自備)。
 
 | 模型 | CER on 0-55s | 解讀 |
 |---|---:|---|

@@ -24,10 +24,16 @@ def fixtures_dir() -> Path:
 
 @pytest.fixture(scope="session")
 def clip_30s(fixtures_dir) -> Path:
-    """30 秒台灣繁中音訊 (從 標準錄音 886 截前 30s)"""
+    """30 秒台灣繁中音訊 (本 repo 不附帶真人語音 fixture;請自備一段 30s 左右
+    的台灣繁中 .wav 放在 tests/fixtures/clip_30s.wav 即可跑此測試。
+    無此檔時相關測試會被 skip,不會 fail。)"""
     p = fixtures_dir / "clip_30s.wav"
     if not p.is_file():
-        pytest.skip(f"fixture 缺失: {p}")
+        pytest.skip(
+            f"audio fixture not present: {p}\n"
+            "Place a ~30s Taiwan-Mandarin .wav at this path to enable audio-dependent tests. "
+            "See CONTRIBUTING.md for guidance."
+        )
     return p
 
 
