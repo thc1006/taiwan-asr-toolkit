@@ -6,6 +6,8 @@
 
 **Qwen3-ASR-1.7B** + **MediaTek Breeze-ASR-25** · Hot-word injection · LLM context polish · Speaker diarization · OpenCC s2twp · 69 TDD tests
 
+[![PyPI](https://img.shields.io/pypi/v/taiwan-asr-toolkit?label=PyPI&color=brightgreen)](https://pypi.org/project/taiwan-asr-toolkit/)
+[![Downloads](https://img.shields.io/pypi/dm/taiwan-asr-toolkit?label=PyPI%20downloads)](https://pypi.org/project/taiwan-asr-toolkit/)
 [![CI](https://github.com/thc1006/taiwan-asr-toolkit/actions/workflows/tests.yml/badge.svg)](https://github.com/thc1006/taiwan-asr-toolkit/actions/workflows/tests.yml)
 [![Release](https://img.shields.io/github/v/release/thc1006/taiwan-asr-toolkit?include_prereleases&sort=semver)](https://github.com/thc1006/taiwan-asr-toolkit/releases)
 [![Tests](https://img.shields.io/badge/tests-69%20passed-brightgreen)](tests/)
