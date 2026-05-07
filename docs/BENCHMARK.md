@@ -74,7 +74,7 @@ v5 用 TDD 嚴格紅燈→綠燈 加三條軸線:
 
 ### A. Hot-word 注入 ASR (源頭治本)
 
-新增 `_asr_common.load_glossary()` + Breeze `--glossary-file` 旗標。**glossary 詞彙會餵給 Whisper `initial_prompt` + `hotwords`**,讓 ASR 在源頭就認識專有名詞。
+新增 `taiwan_asr.common.load_glossary()` + Breeze `--glossary-file` 旗標。**glossary 詞彙會餵給 Whisper `initial_prompt` + `hotwords`**,讓 ASR 在源頭就認識專有名詞。
 
 實測 886 (台大住宿事件):
 | 同音錯字 | 無 glossary | 有 glossary | 結果 |

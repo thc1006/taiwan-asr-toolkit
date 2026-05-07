@@ -3,6 +3,27 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/) and
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.1] – 2026-05-07
+
+### Added
+- VRAM-tier-aware batch sizing on Blackwell (sm_120 / sm_100). Auto-detected
+  per the actual VRAM the GPU reports:
+    - >= 140 GB (B100 / B200): Qwen3 batch 128, Breeze batch 96
+    - >= 70 GB  (RTX Pro 6000, 96 GB): Qwen3 batch 96, Breeze batch 64
+    - >= 30 GB  (RTX 5090, 32 GB): Qwen3 batch 48, Breeze batch 32 (unchanged from 0.5.0)
+    - smaller variants: Qwen3 batch 32, Breeze batch 16
+  Smaller-GPU paths (Hopper, Ada, Ampere, Turing, Volta, CPU) unchanged.
+- `examples/quickstart.ipynb` Colab notebook redesigned to be GPU-aware:
+  full runtime table including RTX Pro 6000 and B100 / B200, footnote noting
+  that single-30s-clip RTF is dominated by per-call overhead so the bigger
+  GPUs only pull decisively ahead on multi-file batch jobs.
+- `docs/PROMOTION.md`: internal launch playbook for PyPI, HN Show HN,
+  Twitter, Reddit, HF model-page Discussions, and awesome-list submissions.
+
+### Fixed
+- `docs/BENCHMARK.md` stale `_asr_common.load_glossary()` reference now
+  points at the post-refactor module path `taiwan_asr.common.load_glossary()`.
+
 ## [0.5.0] – 2026-05-07
 
 Initial public release. Combines five iterations of internal optimization (v1–v5).
